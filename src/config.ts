@@ -92,6 +92,10 @@ export const configSchema = z.object({
    * @example 5000
    */
   maxTokens: z.number().int().positive().optional(),
+  /** Optional topic to categorize the data
+   * @example "diagrams"
+   */
+  topic: z.string().optional(),
 });
 
 export type Config = z.infer<typeof configSchema>;

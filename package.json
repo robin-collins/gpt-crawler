@@ -48,7 +48,7 @@
   "scripts": {
     "semantic-release": "semantic-release",
     "preinstall": "npx playwright install",
-    "start": "npm run start:dev",
+    "start": "npm run backup-output",
     "start:server": "NODE_ENV=development node swagger.js && npm run build && node dist/src/server.js",
     "start:server:prod": "npm run build && node dist/src/server.js",
     "start:cli": "cross-env NODE_ENV=development npm run build && node dist/src/cli.js",
@@ -58,7 +58,8 @@
     "build": "tsc",
     "fmt": "prettier --write .",
     "prettier:check": "prettier --check .",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "backup-output": "cross-env NODE_ENV=development npm run build && node dist/src/main.js && node dist/src/backup-crawler-output.js"
   },
   "author": "It's not you it's me",
   "license": "ISC"
