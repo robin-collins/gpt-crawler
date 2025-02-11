@@ -245,6 +245,46 @@ function convertToMarkdown(
     },
   });
 
+  // Add custom rule to convert HTML tables to Markdown tables
+  turndownService.addRule("tables", {
+    filter: "table",
+    replacement: function (_content, node) {
+      const headers: string[] = [];
+      let markdown = "";
+
+      // Extract table headers
+      const headerRow = node.querySelector("tr");
+      if (headerRow) {
+        headerRow.querySelectorAll("th").forEach((th) => {
+          headers.push(
+            turndownService
+              .turndown(th.innerHTML.trim())
+              .replace(/\n+/g, " ")
+          );
+        });
+        markdown += `| ${headers.join(" | ")} |\n`;
+        markdown += `| ${headers.map(() => "---").join(" | ")} |\n`;
+      }
+
+      // Extract table rows
+      node.querySelectorAll("tr").forEach((tr) => {
+        const cells: string[] = [];
+        tr.querySelectorAll("td").forEach((td) => {
+          cells.push(
+            turndownService
+              .turndown(td.innerHTML.trim())
+              .replace(/\n+/g, " ")
+          );
+        });
+        if (cells.length > 0) {
+          markdown += `| ${cells.join(" | ")} |\n`;
+        }
+      });
+
+      return `\n${markdown}\n`;
+    },
+  });
+
   const domain = new URL(baseUrl).hostname;
   let markdown = "";
   const tocItems: ToCItem[] = [];
