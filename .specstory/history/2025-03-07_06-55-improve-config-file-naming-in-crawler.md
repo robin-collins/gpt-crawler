@@ -1,0 +1,159 @@
+## SpecStory
+
+## Improve Config File Naming in Crawler (3/7/2025, 6:55:28 AM)
+
+_**User**_
+
+@backup-crawler-output.ts @cli.ts @config.ts @core.ts @main.ts @server.ts When to code moves the resultant created document (json, markdown etc) to the 'crawled' folder, along with the config.ts file used to create it, the name its using for the config.ts when it copies it to the folder could be better, eg, it should be called the same name as the outputFileName, but with `_config.ts` added to the end of it,
+
+for example the current config.ts @config.ts has an outputFileName: "obsidian-reference-typescript.md" so the config.ts saved with it in the crawled folder should be `obsidian-reference-typescript.md_config.ts`. Please amend the code
+
+---
+
+_**Assistant**_
+
+I'll help you implement this change to improve the naming of the config file when it's saved alongside the crawler output. Let me first understand how the backup functionality works by examining the relevant code.
+
+---
+
+_\*\*\*\*_
+
+Read file: src/backup-crawler-output.ts
+
+---
+
+_\*\*\*\*_
+
+Now I need to check if there are any other files that might be involved in the backup process.
+
+---
+
+_\*\*\*\*_
+
+<details>
+            <summary>Searched codebase "backup config file crawler output" • **25** results</summary>
+        
+| File | Lines |
+|------|-------|
+| `src/backup-crawler-output.ts` | L51-86 |
+| `src/backup-crawler-output.ts` | L1-51 |
+| `src/backup-crawler-output.ts` | L86-88 |
+| `src/core.ts` | L614-637 |
+| `src/server.ts` | L20-45 |
+| `containerapp/data/init.sh` | L1-11 |
+| `containerapp/data/config.ts` | L1-8 |
+| `src/cli.ts` | L43-100 |
+| `src/main.ts` | L1-5 |
+| `README.md` | L57-80 |
+| `src/cli.ts` | L1-43 |
+| `src/core.ts` | L1-36 |
+| `src/core.ts` | L114-165 |
+| `config.ts` | L7-68 |
+| `src/cli.ts` | L102-115 |
+| `config.example.ts` | L1-75 |
+| `config.example.ts` | L75-113 |
+| `src/core.ts` | L201-256 |
+| `src/config.ts` | L5-83 |
+| `.dockerignore` | L1-16 |
+| `.gitignore` | L1-20 |
+| `src/core.ts` | L499-554 |
+| `README.md` | L80-154 |
+| `src/core.ts` | L165-201 |
+| `src/core.ts` | L472-499 |
+
+</details>
+
+---
+
+_\*\*\*\*_
+
+Now I understand how the backup process works. The issue is in the `src/backup-crawler-output.ts` file where the config file is copied with a prefix based on the domain name and output format, but according to your request, it should be named based on the output file name with "\_config.ts" appended.
+
+Let me modify the code:
+
+---
+
+_\*\*\*\*_
+
+```diff
+      }
+
+-     // Copy the config file with domain name and output format prefix
++     // Copy the config file with output filename as prefix
+      const configDestPath = path.join(backupDir, configFile);
++     const configPrefix = path.basename(defaultConfig.outputFileName);
+      const uniqueConfigPath = await getUniqueFilename(
+        configDestPath,
+-       `${domainName}-${defaultConfig.outputFileFormat}`,
++       `${configPrefix}_config`
+      );
+      await fs.copyFile(configFile, uniqueConfigPath);
+```
+
+---
+
+_\*\*\*\*_
+
+Let me test this change to make sure it works as expected. I'll run the backup script to see if it correctly names the config file.
+
+---
+
+_\*\*\*\*_
+
+Cancelled
+
+---
+
+_\*\*\*\*_
+
+---
+
+_**User**_
+
+it named it `obsidian-reference-typescript.md_config_config.ts` when the outputFileName was `obsidian-reference-typescript.md`, so its added an unneccesary `_config`
+
+---
+
+_**Assistant**_
+
+I see the issue. The naming convention is adding an unnecessary "\_config" before the file extension. Let me fix that by modifying the code to use just the output filename directly with "\_config.ts" appended.
+
+---
+
+_\*\*\*\*_
+
+```diff
+
+      // Copy the config file with output filename as prefix
+-     const configDestPath = path.join(backupDir, configFile);
+-     const configPrefix = path.basename(defaultConfig.outputFileName);
+-     const uniqueConfigPath = await getUniqueFilename(
+-       configDestPath,
+-       `${configPrefix}_config`
+-     );
++     const outputFileName = defaultConfig.outputFileName;
++     const configDestPath = path.join(backupDir, `${outputFileName}_config.ts`);
++     const uniqueConfigPath = await getUniqueFilename(configDestPath);
+      await fs.copyFile(configFile, uniqueConfigPath);
+
+```
+
+---
+
+_\*\*\*\*_
+
+Let me test this change to make sure it works as expected.
+
+---
+
+_\*\*\*\*_
+
+Cancelled
+
+---
+
+_\*\*\*\*_
+
+---
+
+---

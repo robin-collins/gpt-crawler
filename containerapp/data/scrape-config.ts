@@ -1,4 +1,4 @@
-import { Config } from "./src/config";
+import { Config, visitPage, markdown } from "./src/index";
 
 export const defaultConfig: Config = {
   url: "https://www.builder.io/c/docs/developers",
