@@ -1,0 +1,54 @@
+
+## PROJECT OVERVIEW
+This project is a web crawler designed to extract information from various websites and generate markdown files.  The crawler uses TypeScript and Node.js.  Version history is tracked using git.
+
+
+## CODE STYLE
+Adhere to standard TypeScript coding conventions.  Maintain consistent indentation (2 spaces).  Use descriptive variable and function names.
+
+
+## FOLDER ORGANIZATION
+- `crawled`: Stores the crawled data, organized by source website.
+- `src`: Contains the source code for the crawler.
+- `example_html`: Example HTML files for testing.
+
+
+## TECH STACK
+- TypeScript
+- Node.js
+- Git
+
+
+## PROJECT-SPECIFIC STANDARDS
+- All configuration should be managed through the `scrape-config.ts` file.
+- Markdown output should follow a consistent structure.
+
+
+## WORKFLOW & RELEASE RULES
+- Use Git for version control.
+- Commit messages should be clear and concise.
+- Follow a standard release process (detailed in .releaserc).
+
+
+## REFERENCE EXAMPLES
+- Refer to the `example_html` folder for examples of HTML input.
+
+
+## PROJECT DOCUMENTATION & CONTEXT SYSTEM
+- Documentation is stored in the `.specstory` folder.
+- Documentation is timestamped and versioned.  New debugging rules and best practices should be added to this folder.
+
+
+## DEBUGGING
+- When debugging the `removeNodesFromDOM` function, ensure that the `createRemoveNodesFunction` in `@visitPageHelpers.ts` is correctly implemented and imported.  Verify that the import path in `scrape-config.ts` is correct (use `"./src/config"` instead of `"./src/config.js"`). Check that `config.ts` correctly exports `visitPageHelpers` without a `.js` extension.  Console logs within `page.evaluate()` will not appear in the Node.js terminal;  use `console.log` outside of `page.evaluate()` to log information to the terminal.  For debugging within `page.evaluate()`, return structured data from the function and log it after the `page.evaluate()` call.
+- To debug `createRemoveNodesFunction`,  log selectors before the `page.evaluate()` call. Within `page.evaluate()`, return structured data (e.g., an object indicating whether selectors were found and their counts) instead of using `console.log`. Log this structured data after the `page.evaluate()` call.  Avoid relying solely on `console.log` within `page.evaluate()` for terminal output.
+
+
+## FINAL DOs AND DON'Ts
+- **DO** use descriptive variable names.
+- **DO** commit frequently with clear messages.
+- **DO** test thoroughly before releasing.
+- **DON'T** hardcode values; use configuration files.
+- **DON'T** commit unnecessary files.
+- **DO** ensure that console logs for debugging purposes are placed appropriately to be visible in the terminal output.  Avoid relying solely on `console.log` within `page.evaluate()` for terminal output.
+- **DO NOT** modify imports/exports to include or remove `.js` extensions.  The TypeScript compiler handles this.

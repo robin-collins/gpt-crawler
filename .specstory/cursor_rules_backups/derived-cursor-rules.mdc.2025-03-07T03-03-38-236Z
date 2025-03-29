@@ -1,0 +1,50 @@
+
+## PROJECT OVERVIEW
+This project is a web crawler designed to extract information from various websites and generate markdown files.  The crawler uses TypeScript and Node.js.  Version history is tracked using git.
+
+
+## CODE STYLE
+Adhere to standard TypeScript coding conventions.  Maintain consistent indentation (2 spaces).  Use descriptive variable and function names.
+
+
+## FOLDER ORGANIZATION
+- `crawled`: Stores the crawled data, organized by source website.
+- `src`: Contains the source code for the crawler.
+- `example_html`: Example HTML files for testing.
+
+
+## TECH STACK
+- TypeScript
+- Node.js
+- Git
+
+
+## PROJECT-SPECIFIC STANDARDS
+- All configuration should be managed through the `scrape-config.ts` file.
+- Markdown output should follow a consistent structure.
+
+
+## WORKFLOW & RELEASE RULES
+- Use Git for version control.
+- Commit messages should be clear and concise.
+- Follow a standard release process (detailed in .releaserc).
+
+
+## REFERENCE EXAMPLES
+- Refer to the `example_html` folder for examples of HTML input.
+
+
+## PROJECT DOCUMENTATION & CONTEXT SYSTEM
+- Documentation is stored in the `docs` folder.
+- Documentation has not been created yet.
+
+
+## DEBUGGING
+- When debugging the `removeNodesFromDOM` function, ensure that the `createRemoveNodesFunction` in `@visitPageHelpers.ts` is correctly implemented and imported.  Verify that the import path in `scrape-config.ts` is correct (use `"./src/config"` instead of `"./src/config.js"`). Check that `config.ts` correctly exports `visitPageHelpers` without a `.js` extension.
+
+## FINAL DOs AND DON'Ts
+- **DO** use descriptive variable names.
+- **DO** commit frequently with clear messages.
+- **DO** test thoroughly before releasing.
+- **DON'T** hardcode values; use configuration files.
+- **DON'T** commit unnecessary files.

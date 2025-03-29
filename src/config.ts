@@ -75,7 +75,7 @@ export const configSchema = z.object({
     )
     .returns(z.promise(z.void()))
     .optional(),
-  /** Optional function to modify the generated markdown before writing to file */
+  /** Optional function to process markdown content */
   onProcessMarkdown: z
     .function()
     .args(z.string())
@@ -102,13 +102,9 @@ export const configSchema = z.object({
    * @example "diagrams"
    */
   topic: z.string().optional(),
-
-  /** Default language to use for code blocks that don't have a language specified */
-  defaultCodeLanguage: z.string().optional(),
 });
 
 export type Config = z.infer<typeof configSchema>;
 
-// Export helpers for use in scrape-config.ts
-export * as visitPage from "./visitPageHelpers";
-export * as markdown from "./markdownHelpers";
+export * as visitPage from './visitPageHelpers.js';
+export * as markdown from './markdownHelpers.js';

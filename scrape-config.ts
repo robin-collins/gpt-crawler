@@ -1,43 +1,68 @@
-import { Config, visitPage, markdown } from "./src/config";
+import * as ConfigModule from "./src/config.js"
+import { Config } from "./src/config"; // Importing only the type
+
+const { visitPage, markdown } = ConfigModule;
+
 
 /**
  * Custom function to remove specific DOM elements
  * Removes footer and outline elements from the DOM
  */
+
 const removeNodesFromDOM = visitPage.createRemoveNodesFunction([
-  ".mod-footer.mod-ui",
-  ".outline-view-outer.node-insert-event",
+  ".site-body-right-column",
+  ".mod-footer.mod-ui"
 ]);
 
+const combinedOnVisitPage = visitPage.chainVisitFunctions(visitPage.confirmOnVisitPage, visitPage.cleanCodeBlocks);
+
 export const defaultConfig: Config = {
-  url: "https://docs.obsidian.md/",
+  url: "http://localhost:3000",
   match: [
-    "https://docs.obsidian.md/Reference/CSS+variables/CSS+variables",
-    "https://docs.obsidian.md/Reference/CSS+variables/Foundations/Borders",
-    "https://docs.obsidian.md/Reference/CSS+variables/Foundations/Colors",
-  ],
+    "http://localhost:3000/**/**",   ],
   exclude: [],
-  maxPagesToCrawl: 3,
-  topic: "obsidian-dev",
-  selector: ".markdown-preview-sizer.markdown-preview-section",
-  outputFileName: "obsidian-ref-css-vars.md",
+  maxPagesToCrawl: 1000,
+  topic: "obsidian",
+  selector: "#content",
+  outputFileName: "Templater-plugin.md",
   outputFileFormat: "markdown",
-  onVisitPage: removeNodesFromDOM,
-  // Example of chaining multiple functions together
-  // onVisitPage: visitPage.chainVisitFunctions(
-  //   removeNodesFromDOM,
-  //   visitPage.cleanCodeBlocks
-  // ),
-
-  // Example of chaining multiple markdown processors together
-  // onProcessMarkdown: markdown.chainMarkdownProcessors(
-  //   markdown.addLanguageToCodeBlocks,
-  //   markdown.removeHtmlComments,
-  //   markdown.normalizeHeadings
-  // ),
-
-  /*
-
-'https://docs.obsidian.md/Reference/TypeScript+API/**','https://docs.obsidian.md/Themes/**', 'https://docs.obsidian.md/Plugins/**'
-*/
+ // onVisitPage: combinedOnVisitPage,
+ // onProcessMarkdown: markdown.addLanguageToCodeBlocks,
 };
+
+/*
+<!--
+You can use various selectors to target this element:
+
+1. Tag selector:
+   article
+
+2. Class selector:
+   .markdown-section
+
+3. ID selector:
+   #main
+
+4. Attribute selector:
+   [class="markdown-section"]
+   [id="main"]
+
+5. Combined selectors:
+   article.markdown-section
+   article#main
+   .markdown-section#main
+
+6. Descendant selectors (for children inside):
+   article.markdown-section > p
+   #main > div
+
+7. Pseudo-classes:
+   .markdown-section:hover
+   #main:first-child
+
+8. Pseudo-elements:
+   .markdown-section::before
+   #main::after
+-->
+<article class="markdown-section" id="main"></article>
+*/

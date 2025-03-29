@@ -1,5 +1,6 @@
 {
   "name": "@builder.io/gpt-crawler",
+  "license": "ISC",
   "version": "1.4.0",
   "type": "module",
   "bin": {
@@ -62,5 +63,5 @@
     "backup-output": "cross-env NODE_ENV=development npm run build && node dist/src/main.js && node dist/src/backup-crawler-output.js"
   },
   "author": "It's not you it's me",
-  "license": "ISC"
+  "packageManager": "yarn@1.22.22+sha1.ac34549e6aa8e7ead463a7407e1c7390f61a6610"
 }
