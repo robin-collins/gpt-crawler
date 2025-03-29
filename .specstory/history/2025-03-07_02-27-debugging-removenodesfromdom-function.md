@@ -4,7 +4,7 @@
 
 _**User**_
 
-I do not think that the removeNodesFromDOM function (or more likely the createRemoveNodesFunction() in @visitPageHelpers.ts  is not working.
+I do not think that the removeNodesFromDOM function (or more likely the createRemoveNodesFunction() in @visitPageHelpers.ts is not working.
 
 ---
 
@@ -136,12 +136,12 @@ I've identified the issue. Let me fix the problem:
 - import * as ConfigModule from "./src/config.js"
 + import * as ConfigModule from "./src/config"
   import type { Config } from "./src/config"; // Importing only the type
-  
+
   const { visitPage, markdown } = ConfigModule;
   void markdown;  // This is to ensure that the markdown module is imported but not throw an error
 - // void visitPage; // This is to ensure that the visitPage module is imported but not throw an error
 + void visitPage; // This is to ensure that the visitPage module is imported but not throw an error
-  
+
   /**
 ```
 
@@ -169,12 +169,12 @@ I see another issue. The config.ts file is exporting visitPageHelpers.js with a 
 
 ```diff
   export type Config = z.infer<typeof configSchema>;
-  
+
 - export * as visitPage from './visitPageHelpers.js';
 - export * as markdown from './markdownHelpers.js';
 + export * as visitPage from './visitPageHelpers';
 + export * as markdown from './markdownHelpers';
-  
+
 ```
 
 ---
@@ -187,15 +187,13 @@ Cancelled
 
 ---
 
-
-
 ---
 
 _**User**_
 
 ok, so DO NOT TRY AND CHANGE THE imports / exports, or add or remove the .js from anything, you are WRONG.
 
-Check the console output, 
+Check the console output,
 
 ```
 $ npm run backup-output
@@ -215,22 +213,22 @@ visitPageHelpers.ts:  createRemoveNodesFunction executing
 INFO  PlaywrightCrawler: Crawler reached the maxRequestsPerCrawl limit of 1 requests and will shut down soon. Requests that are in progress will be allowed to finish.
 INFO  PlaywrightCrawler: Earlier, the crawler reached the maxRequestsPerCrawl limit of 1 requestsINFO  PlaywrightCrawler: Earlier, the crawler reached the maxRequestsPerCrawl limit of 1 requests and all requests that were in progress at that time have now finished. In total, the crawler processed 1 requests and will shut down.
 INFO  PlaywrightCrawler: Earlier, the crawler reached the maxRequestsPerCrawl limit of 1 requests and all requests that were in progress at that time have now finished. In total, the crawler processed 1 requests and will shut down.
-INFO  PlaywrightCrawler: Final request statistics: {"requestsFinished":1,"requestsFailed":0,"retryHistogram":[1],"requestAvgFailedDurationMillis":null,"requestAvgFinishedDurationMillis":4866,"requestsFinishedPerMinute":10,"requestsFailedPerMinute":0,"requestTotalDurationMillis":4866,"requestsTotal":1,"crawlerRuntimeMillis":6113}      
+INFO  PlaywrightCrawler: Final request statistics: {"requestsFinished":1,"requestsFailed":0,"retryHistogram":[1],"requestAvgFailedDurationMillis":null,"requestAvgFinishedDurationMillis":4866,"requestsFinishedPerMinute":10,"requestsFailedPerMinute":0,"requestTotalDurationMillis":4866,"requestsTotal":1,"crawlerRuntimeMillis":6113}
 INFO  PlaywrightCrawler: Finished! Total 1 requests: 1 succeeded, 0 failed. {"terminal":true}
 Found 1 files to combine...
 Wrote 1 items to obsidian-ref-css-vars.md
 Backup completed successfully:
 Directory: Topic: obsidian-dev
 Output file: crawled\obsidian-dev\obsidian-ref-css-vars.md
-Config file: crawled\obsidian-dev\docs.obsidian.md-markdown_scrape-config.ts        
+Config file: crawled\obsidian-dev\docs.obsidian.md-markdown_scrape-config.ts
 Done in 15.43s.
 
 ```
 
 the lines
-visitPageHelpers.ts:  onVisitPage is working
-visitPageHelpers.ts:  page.url():  https://docs.obsidian.md/Reference/CSS+variables/CSS+variables
-visitPageHelpers.ts:  createRemoveNodesFunction executing
+visitPageHelpers.ts: onVisitPage is working
+visitPageHelpers.ts: page.url(): https://docs.obsidian.md/Reference/CSS+variables/CSS+variables
+visitPageHelpers.ts: createRemoveNodesFunction executing
 
 show that the code is loading, and running, but the createRemoveNodesFunction does not log selectors or anyting else.
 
@@ -249,44 +247,44 @@ Let's modify the `createRemoveNodesFunction` to properly debug what's happening:
       console.log('\x1b[91mvisitPageHelpers.ts:\x1b[0m  createRemoveNodesFunction executing');
 -     await page.evaluate((selectors: string[]) => {
 +     console.log('\x1b[91mvisitPageHelpers.ts:\x1b[0m  selectors to remove:', selectorsToRemove);
-+     
++
 +     const results = await page.evaluate((selectors: string[]) => {
         if (!selectors || !Array.isArray(selectors)) {
 -         console.log('\x1b[91mvisitPageHelpers.ts:\x1b[0m  Selectors not found or not an array');
 -         return;
 +         return { error: 'Selectors not found or not an array' };
         }
-- 
-+ 
+-
++
 +       const selectorResults = [];
-+       
++
         selectors.forEach((selector) => {
           // Find all elements matching the selector
           const elements = document.querySelectorAll(selector);
-- 
+-
 -         // log the selector
 -         console.log('\x1b[91mvisitPageHelpers.ts:\x1b[0m  selector: ', selector);
-- 
+-
 -         // if the elements are found, log "elements:true" else "elements:false"
 -         if (elements.length > 0) {
 -           console.log('\x1b[91mvisitPageHelpers.ts:\x1b[0m  elements:true');
 -         } else {
 -           console.log('\x1b[91mvisitPageHelpers.ts:\x1b[0m  elements:false');
--         }       
-+         
+-         }
++
 +         selectorResults.push({
 +           selector,
 +           found: elements.length > 0,
 +           count: elements.length
 +         });
-          
+
           // Remove each element from the DOM
           });
         });
-+       
++
 +       return { selectorResults };
       }, selectorsToRemove);
-+     
++
 +     console.log('\x1b[91mvisitPageHelpers.ts:\x1b[0m  Results from browser:', JSON.stringify(results, null, 2));
     };
   };
@@ -318,8 +316,6 @@ Cancelled
 
 ---
 
-
-
 ---
 
 _**User**_
@@ -345,8 +341,6 @@ Now let's run the crawler to see what's happening with the selectors:
 Cancelled
 
 ---
-
-
 
 ---
 
@@ -408,8 +402,6 @@ Cancelled
 
 ---
 
-
-
 ---
 
 _**User**_
@@ -421,10 +413,10 @@ _**User**_
     await page.evaluate(() => {
       // Select all pre elements that contain code blocks
       const codeBlocks = document.querySelectorAll('pre');
-      
+
       codeBlocks.forEach(codeBlock => {
         if (!(codeBlock instanceof HTMLElement)) return;
-        
+
         // Find the actual code content, which is within a code element
         const codeElement = codeBlock.querySelector('code');
         if (!codeElement) return;
@@ -432,7 +424,7 @@ _**User**_
         // Get all text content, removing special characters and extra whitespace
         let codeText = '';
         const codeLines = codeElement.textContent?.split('\n') || [];
-        
+
         codeLines.forEach(line => {
           // Remove line numbers and their associated elements
           const cleanLine = line
@@ -440,7 +432,7 @@ _**User**_
             .replace(/^\s*\$\s/, '$  ') // Preserve command prompts but normalize spacing
             .replace(/^.*codelineno.*$/, '') // Remove line number anchor elements
             .trim();
-            
+
           if (cleanLine && !cleanLine.startsWith('$ powershell')) { // Skip powershell commands
             codeText += cleanLine + '\n';
           }
@@ -484,15 +476,11 @@ Let's revert our changes to the core.ts and config.ts files:
 
 ---
 
-
-
 ---
 
 Let me try again with the exact lines:
 
 ---
-
-
 
 ---
 
@@ -500,15 +488,11 @@ Let's revert the changes to config.ts:
 
 ---
 
-
-
 ---
 
 Let's try again with the exact lines:
 
 ---
-
-
 
 ---
 
@@ -552,11 +536,6 @@ Cancelled
 
 ---
 
-
-
 ---
 
-
-
 ---
-

@@ -42,7 +42,7 @@ This means that any DOM modifications made by the `onVisitPage` function (such a
 
 According to the cursor rules context, this is a known issue:
 
-> The order of operations in `core.ts` must ensure that `removeNodesFromDOM` is executed *before* content is captured for markdown output. Currently, content capture precedes the execution of the removal function, resulting in unwanted content in the output.
+> The order of operations in `core.ts` must ensure that `removeNodesFromDOM` is executed _before_ content is captured for markdown output. Currently, content capture precedes the execution of the removal function, resulting in unwanted content in the output.
 
 To fix this issue, the `onVisitPage` function should be called before the content is captured and processed by Readability, so that any DOM modifications can take effect before the content is saved.
 
@@ -117,6 +117,7 @@ I'll fix the issue by moving the `onVisitPage` function call to execute before t
 This change moves the `onVisitPage` function call to execute before the content is captured and processed by Readability. Now any DOM modifications made by the `onVisitPage` function (such as removing unwanted elements) will affect the content that's captured for markdown conversion.
 
 The key changes are:
+
 1. Added the `onVisitPage` call before content capture
 2. Removed the duplicate `onVisitPage` call that was previously after content capture
 3. Kept the same `pushDataWrapper` function to maintain consistency
@@ -125,7 +126,4 @@ This fix ensures that any DOM modifications (like removing unwanted nodes) will 
 
 ---
 
-
-
 ---
-

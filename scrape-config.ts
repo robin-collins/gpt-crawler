@@ -1,8 +1,7 @@
-import * as ConfigModule from "./src/config.js"
+import * as ConfigModule from "./src/config.js";
 import { Config } from "./src/config"; // Importing only the type
 
 const { visitPage, markdown } = ConfigModule;
-
 
 /**
  * Custom function to remove specific DOM elements
@@ -11,23 +10,25 @@ const { visitPage, markdown } = ConfigModule;
 
 const removeNodesFromDOM = visitPage.createRemoveNodesFunction([
   ".site-body-right-column",
-  ".mod-footer.mod-ui"
+  ".mod-footer.mod-ui",
 ]);
 
-const combinedOnVisitPage = visitPage.chainVisitFunctions(visitPage.confirmOnVisitPage, visitPage.cleanCodeBlocks);
+const combinedOnVisitPage = visitPage.chainVisitFunctions(
+  visitPage.confirmOnVisitPage,
+  visitPage.cleanCodeBlocks,
+);
 
 export const defaultConfig: Config = {
   url: "http://localhost:3000",
-  match: [
-    "http://localhost:3000/**/**",   ],
+  match: ["http://localhost:3000/**/**"],
   exclude: [],
   maxPagesToCrawl: 1000,
   topic: "obsidian",
   selector: "#content",
   outputFileName: "Templater-plugin.md",
   outputFileFormat: "markdown",
- // onVisitPage: combinedOnVisitPage,
- // onProcessMarkdown: markdown.addLanguageToCodeBlocks,
+  // onVisitPage: combinedOnVisitPage,
+  // onProcessMarkdown: markdown.addLanguageToCodeBlocks,
 };
 
 /*

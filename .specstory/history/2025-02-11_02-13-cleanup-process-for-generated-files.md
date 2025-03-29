@@ -4,7 +4,7 @@
 
 _**User**_
 
-i would like it to cleanup the generated files in the folders root directory after the backup-crawler-output.ts has finished, only the generated files, the ones using the 'outputFileName': from the config. so the process would be, 
+i would like it to cleanup the generated files in the folders root directory after the backup-crawler-output.ts has finished, only the generated files, the ones using the 'outputFileName': from the config. so the process would be,
 
 crawl pages -> write outputFiles
 backup-crawler-output -> copies to a subfolder of the crawled folder, including config file.
@@ -55,8 +55,6 @@ Let me search for relevant code first.
 
 ---
 
-
-
 Based on the search results, I can see that the output files are generated with the pattern specified in `config.outputFileName`, and they can have numbered suffixes (e.g., output.json, output-1.json, etc.) when the content is split into multiple files.
 
 Let me modify the `backup-crawler-output.ts` file to add the cleanup functionality:
@@ -66,7 +64,7 @@ Let me modify the `backup-crawler-output.ts` file to add the cleanup functionali
 ```diff
       );
       console.log(`Config file: ${uniqueConfigPath}`);
-+ 
++
 +     // Delete the original output files after successful backup
 +     console.log("\nCleaning up output files...");
 +     for (const outputFile of outputFiles) {
@@ -74,14 +72,12 @@ Let me modify the `backup-crawler-output.ts` file to add the cleanup functionali
 +       console.log(`Deleted: ${outputFile}`);
 +     }
 +     console.log("Cleanup completed.");
-+ 
++
     } catch (error) {
       console.error("Error during backup:", error);
 ```
 
 ---
-
-
 
 I've modified the `backup-crawler-output.ts` file to add cleanup functionality. Here's what the changes do:
 
@@ -93,6 +89,7 @@ I've modified the `backup-crawler-output.ts` file to add cleanup functionality. 
    - Print a completion message
 
 The process now follows exactly what you requested:
+
 1. Crawl pages -> write outputFiles (handled by the main crawler)
 2. backup-crawler-output -> copies files to a subfolder of the crawled folder, including config file
 3. Delete outputFiles from project root dir (new functionality)
@@ -103,7 +100,4 @@ Would you like me to make any adjustments to this implementation?
 
 ---
 
-
-
 ---
-

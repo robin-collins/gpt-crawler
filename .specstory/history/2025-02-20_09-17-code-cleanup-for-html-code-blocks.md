@@ -23,7 +23,7 @@ Let me modify the code to handle these cases:
 -       const codeBlocks = document.querySelectorAll('section.CodeBlock pre');
 +       // Select all pre elements that contain code blocks
 +       const codeBlocks = document.querySelectorAll('pre');
-+       
++
         codeBlocks.forEach(codeBlock => {
           if (!(codeBlock instanceof HTMLElement)) return;
 -         // Get the raw text of the code block and split it into lines.
@@ -34,15 +34,15 @@ Let me modify the code to handle these cases:
 -         const newPre = document.createElement("pre");
 -         const newCode = document.createElement("code");
 -         newCode.textContent = cleanedLines.join("\n");
-+         
++
 +         // Find the actual code content, which is within a code element
 +         const codeElement = codeBlock.querySelector('code');
 +         if (!codeElement) return;
-+ 
++
 +         // Get all text content, removing special characters and extra whitespace
 +         let codeText = '';
 +         const codeLines = codeElement.textContent?.split('\n') || [];
-+         
++
 +         codeLines.forEach(line => {
 +           // Remove line numbers and their associated elements
 +           const cleanLine = line
@@ -50,19 +50,19 @@ Let me modify the code to handle these cases:
 +             .replace(/^\s*\$\s/, '$  ') // Preserve command prompts but normalize spacing
 +             .replace(/^.*codelineno.*$/, '') // Remove line number anchor elements
 +             .trim();
-+             
++
 +           if (cleanLine && !cleanLine.startsWith('$ powershell')) { // Skip powershell commands
 +             codeText += cleanLine + '\n';
 +           }
 +         });
-+ 
++
 +         // Create new clean elements
 +         const newPre = document.createElement('pre');
 +         const newCode = document.createElement('code');
 +         newCode.textContent = codeText.trim();
           newPre.appendChild(newCode);
 -         // Replace the old <pre> element with the new one.
-+ 
++
 +         // Replace the old complex structure with our clean one
           if (codeBlock.parentNode) {
             codeBlock.parentNode.replaceChild(newPre, codeBlock);
@@ -77,6 +77,7 @@ I've updated the `onVisitPage` function with several improvements to handle the 
 2. Properly extracts code from the nested structure by finding the `code` element within each `pre` block
 
 3. Cleans up the content by:
+
    - Removing line numbers
    - Preserving command prompts (`$`) but normalizing their spacing
    - Removing line number anchor elements (`codelineno`)
@@ -86,6 +87,7 @@ I've updated the `onVisitPage` function with several improvements to handle the 
 4. Creates clean `<pre><code>` elements with just the essential code content
 
 This should now handle both types of code blocks shown in your example HTML:
+
 - The complex multi-line command examples with line numbers and prompts
 - The simpler single-line command examples
 
@@ -124,7 +126,4 @@ Would you like me to make any other adjustments to the code formatting or struct
 
 ---
 
-
-
 ---
-

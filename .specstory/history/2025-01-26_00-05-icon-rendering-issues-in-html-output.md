@@ -6,7 +6,7 @@ _**User**_
 
 so the .html output ran. The cards and the text for the icons looks good, but many of the cards do not have icons 'in' them, the icons appear all over the place, eg the image above which is the second and third card on the page. ( i included a snippet of the icon-reference.html as the full file is massive)
 
-please fix the iconlist.js so that it generates a nice n clean `icon-reference.html`, check that it outputs correct icon names, check font loading, ensure no css conflits 
+please fix the iconlist.js so that it generates a nice n clean `icon-reference.html`, check that it outputs correct icon names, check font loading, ensure no css conflits
 
 ---
 
@@ -15,6 +15,7 @@ _**Assistant**_
 I notice the issue - the problem is with how we're setting the icon names in the Material Icons font. Let me analyze and fix this.
 
 The main issues are:
+
 1. We're using `name.toLowerCase()` which isn't always correct for Material Icons
 2. We need to ensure proper font loading
 3. The icon names need to match the Material Icons naming convention exactly
@@ -87,8 +88,6 @@ Let me modify the `iconlist.js` file:
 
 ---
 
-
-
 I've made several important changes to fix the icon display issues:
 
 1. Updated the font loading to use a more robust approach with preconnect and proper crossorigin attributes
@@ -150,8 +149,6 @@ $
 ```
 
 ---
-
-
 
 The new reference page has been generated. The icons should now display properly in their cards. The key improvements are:
 
@@ -234,13 +231,13 @@ Here's a high-level overview of how you can achieve this:
 Create a `webpack.config.js` file to bundle the `SearchIcons.js`:
 
 ```javascript
-const path = require('path');
+const path = require("path");
 
 module.exports = {
-  entry: './SearchIcons.js',
+  entry: "./SearchIcons.js",
   output: {
-    filename: 'bundle.js',
-    path: path.resolve(__dirname, 'dist'),
+    filename: "bundle.js",
+    path: path.resolve(__dirname, "dist"),
   },
   module: {
     rules: [
@@ -248,9 +245,9 @@ module.exports = {
         test: /\.js$/,
         exclude: /node_modules/,
         use: {
-          loader: 'babel-loader',
+          loader: "babel-loader",
           options: {
-            presets: ['@babel/preset-react'],
+            presets: ["@babel/preset-react"],
           },
         },
       },
@@ -288,9 +285,9 @@ Create an `index.html` file:
 In `SearchIcons.js`, add the following at the end of the file to render the component:
 
 ```javascript
-import ReactDOM from 'react-dom';
+import ReactDOM from "react-dom";
 
-ReactDOM.render(<SearchIcons />, document.getElementById('root'));
+ReactDOM.render(<SearchIcons />, document.getElementById("root"));
 ```
 
 ### Final Steps
@@ -326,7 +323,7 @@ Here's how you can modify `SearchIcons.js`:
 Add the import statement at the top of `SearchIcons.js`:
 
 ```javascript
-import synonyms from './synonyms';
+import synonyms from "./synonyms";
 ```
 
 ### Step 2: Use Synonyms in Search Logic
@@ -337,12 +334,12 @@ Ensure that the synonyms are being used in the search index:
 const allIcons = Object.keys(mui)
   .sort()
   .map((importName) => {
-    let theme = 'Filled';
+    let theme = "Filled";
     let name = importName;
 
-    for (const currentTheme of ['Outlined', 'Rounded', 'TwoTone', 'Sharp']) {
+    for (const currentTheme of ["Outlined", "Rounded", "TwoTone", "Sharp"]) {
       if (importName.endsWith(currentTheme)) {
-        theme = currentTheme === 'TwoTone' ? 'Two tone' : currentTheme;
+        theme = currentTheme === "TwoTone" ? "Two tone" : currentTheme;
         name = importName.slice(0, -currentTheme.length);
         break;
       }
@@ -438,8 +435,6 @@ _**User**_
 
 _**Assistant**_
 
-
-
 Since we're using a `.cjs` file (CommonJS), we need to use CommonJS syntax (`require` and `module.exports`) instead of ES modules syntax (`import` and `export`). Let's fix the `webpack.config.cjs`:
 
 ```javascript:webpack.config.cjs
@@ -471,11 +466,13 @@ module.exports = {
 Now you'll need to:
 
 1. Install the required dependencies:
+
 ```bash
 npm install --save-dev webpack webpack-cli babel-loader @babel/core @babel/preset-react
 ```
 
 2. Run webpack:
+
 ```bash
 npx webpack --config webpack.config.cjs
 ```
@@ -484,7 +481,4 @@ This should properly build your project. Let me know if you encounter any other 
 
 ---
 
-
-
 ---
-

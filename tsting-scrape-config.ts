@@ -15,13 +15,15 @@ export const defaultConfig: Config = {
   onVisitPage: async ({ page, pushData: _pushData }) => {
     await page.evaluate(() => {
       // Select all code blocks within sections with the "CodeBlock" class.
-      const codeBlocks = document.querySelectorAll('section.CodeBlock pre');
-      codeBlocks.forEach(codeBlock => {
+      const codeBlocks = document.querySelectorAll("section.CodeBlock pre");
+      codeBlocks.forEach((codeBlock) => {
         if (!(codeBlock instanceof HTMLElement)) return;
         // Get the raw text of the code block and split it into lines.
-        const lines = codeBlock.innerText.split('\n');
+        const lines = codeBlock.innerText.split("\n");
         // Remove any leading numbers (and an optional space) from each line.
-        const cleanedLines = lines.map((line: string) => line.replace(/^\s*\d+\s?/, ''));
+        const cleanedLines = lines.map((line: string) =>
+          line.replace(/^\s*\d+\s?/, ""),
+        );
         // Create new <pre> and <code> nodes and insert the cleaned code.
         const newPre = document.createElement("pre");
         const newCode = document.createElement("code");

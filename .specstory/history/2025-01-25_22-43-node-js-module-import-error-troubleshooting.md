@@ -32,9 +32,7 @@ npm i lodash.snakecase
 npm i @mui/icons-material
 ```
 
-why the error, i have installed the module (i think) have i named the file wrong? 
-
-
+why the error, i have installed the module (i think) have i named the file wrong?
 
 ---
 
@@ -93,7 +91,7 @@ const iconsDir = path.resolve('./node_modules/@mui/icons-material/esm');
 async function getIconList() {
   // Read all files in the directory
   const files = await fs.readdir(iconsDir);
-  
+
   // Filter out the style variants and get just the base names
   const iconNames = files
     .filter(file => file.endsWith('.js'))
@@ -108,6 +106,7 @@ getIconList().catch(console.error);
 ```
 
 This version:
+
 1. Reads the icon files directly from the directory instead of importing them all
 2. Filters out the style variants
 3. Converts the names to snake case
@@ -137,7 +136,7 @@ const iconsDir = path.resolve('./node_modules/@mui/icons-material/esm');
 
 async function generateIconPage() {
   const files = await fs.readdir(iconsDir);
-  
+
   const iconNames = files
     .filter(file => file.endsWith('.js'))
     .map(file => file.replace('.js', ''))
@@ -222,6 +221,7 @@ generateIconPage().catch(console.error);
 ```
 
 This script will:
+
 1. Generate an HTML file named `icon-reference.html`
 2. Display all icons in a responsive grid
 3. Show each icon with its original name and snake_case version
@@ -230,6 +230,7 @@ This script will:
 6. Style everything nicely with CSS
 
 To use it:
+
 1. Run the script: `node iconlist.js`
 2. Open the generated `icon-reference.html` in your browser
 
@@ -241,7 +242,4 @@ If you want to create a more interactive version with the actual MUI components,
 
 ---
 
-
-
 ---
-

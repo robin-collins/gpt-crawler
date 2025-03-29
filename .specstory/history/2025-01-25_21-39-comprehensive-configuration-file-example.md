@@ -119,6 +119,7 @@ export default config;
 ```
 
 This example configuration file includes:
+
 1. All possible configuration options from the schema
 2. Detailed comments explaining each option
 3. Multiple examples for complex options
@@ -130,7 +131,4 @@ The file can serve as both a reference and a starting point for users to create 
 
 ---
 
-
-
 ---
-

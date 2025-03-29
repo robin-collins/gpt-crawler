@@ -4,7 +4,7 @@
 
 _**User**_
 
-can you please outline exactly what was stored to json in the older version of core.ts @core-pre-readability.ts then do the same explanation for @core.ts 
+can you please outline exactly what was stored to json in the older version of core.ts @core-pre-readability.ts then do the same explanation for @core.ts
 
 i am looking for exactly what it stores, and the path the data goes through to get there
 
@@ -22,12 +22,13 @@ Below is a detailed breakdown of what data each version produces and saves to JS
 
 - **Data Object Structure:**  
   Each crawled page results in an object that contains at minimum:
-  - **`title`**  
-    - Extracted from `page.title()`.  
-  - **`url`**  
-    - Taken from `request.loadedUrl` (the URL that the crawler loaded).  
-  - **`html`**  
-    - Extracted using the helper function `getPageHtml(page, config.selector)`.  
+
+  - **`title`**
+    - Extracted from `page.title()`.
+  - **`url`**
+    - Taken from `request.loadedUrl` (the URL that the crawler loaded).
+  - **`html`**
+    - Extracted using the helper function `getPageHtml(page, config.selector)`.
     - This function checks if the provided selector starts with `/` (an XPath) or is a CSS selector, and then returns either the element’s `textContent` or `innerText`.
 
 - **Optional/Add-on Data:**  
@@ -35,18 +36,16 @@ Below is a detailed breakdown of what data each version produces and saves to JS
 
 ### **2. Data Flow Path**
 
-- **Extraction in the Crawler:**  
+- **Extraction in the Crawler:**
   - In the `crawl(config: Config)` function, the crawler’s `requestHandler` is defined. Inside this handler:
     - The page title is fetched using `await page.title()`.
     - The HTML (or text) fragment is captured by calling `getPageHtml(page, config.selector)`.
     - Both the title and the URL (from `request.loadedUrl`) are combined with this extracted HTML.
     - The data object is then passed to `pushData({ title, url, html })`.
-  
-- **Storage Location:**  
+- **Storage Location:**
   - Behind the scenes, the Crawlee framework (used by the crawler) writes these objects as individual JSON files into the directory:  
     `./storage/datasets/default`
-  
-- **Aggregation & Final Write:**  
+- **Aggregation & Final Write:**
   - Later, when the `write(config: Config)` function is called:
     - It collects all the JSON files from `storage/datasets/default/*.json` using a glob pattern.
     - It batches them (taking into account token limits and byte size restrictions) and writes a combined JSON output file.
@@ -60,19 +59,20 @@ Below is a detailed breakdown of what data each version produces and saves to JS
 
 - **Data Object Structure:**  
   Instead of simply capturing an element’s text, the new flow processes the full page content through [Mozilla’s Readability](https://github.com/mozilla/readability). Each object now includes:
-  - **`title`**  
+
+  - **`title`**
     - Preferably the article’s title as determined by Readability (`article?.title`), or it falls back to the original `page.title()`.
-  - **`url`**  
+  - **`url`**
     - The URL of the page from `request.loadedUrl`.
-  - **`content`**  
+  - **`content`**
     - The formatted HTML content of the parsed article (from `article?.content`).
-  - **`textContent`**  
+  - **`textContent`**
     - A plain text version of the article (from `article?.textContent`).
-  - **`excerpt`**  
+  - **`excerpt`**
     - A short summary or excerpt (from `article?.excerpt`).
-  - **`byline`**  
+  - **`byline`**
     - Authorship information if available (from `article?.byline`).
-  - **`siteName`**  
+  - **`siteName`**
     - The site name metadata (from `article?.siteName`).
 
 - **Optional/Add-on Data:**  
@@ -80,19 +80,19 @@ Below is a detailed breakdown of what data each version produces and saves to JS
 
 ### **2. Data Flow Path**
 
-- **Extraction in the Crawler:**  
+- **Extraction in the Crawler:**
   - In the `crawl(config: Config)` function, the crawler’s `requestHandler` is defined. The flow is as follows:
-    1. **Initial Page Data:**  
+    1. **Initial Page Data:**
        - The page title is fetched (`await page.title()`), and the crawler logs the visit.
-    2. **Waiting for Selectors:**  
+    2. **Waiting for Selectors:**
        - Similar to the older version, if a selector is specified (either XPath or CSS), it waits for that element.
-    3. **On-Visit Hook:**  
+    3. **On-Visit Hook:**
        - If `config.onVisitPage` exists, it is executed before processing the main content.
-    4. **Full Content Processing:**  
+    4. **Full Content Processing:**
        - The complete page HTML is fetched using `page.content()`.
        - A new JSDOM instance is created using that HTML (with the URL set to `request.loadedUrl`).
        - Mozilla’s Readability is then run against the parsed document (`new Readability(dom.window.document).parse()`), returning an `article` object with rich properties.
-    5. **Data Assembly and Push:**  
+    5. **Data Assembly and Push:**
        - A new data object is assembled with the keys listed above. For example:
          ```javascript
          {
@@ -106,14 +106,12 @@ Below is a detailed breakdown of what data each version produces and saves to JS
          }
          ```
        - This data object is then passed to `pushDataWrapper` (a thin wrapper around `pushData`).
-  
-- **Storage Location:**  
+- **Storage Location:**
   - As before, the Crawlee framework writes these objects to individual JSON files under:  
     `./storage/datasets/default`
-  
-- **Aggregation & Final Write:**  
+- **Aggregation & Final Write:**
   - The `write(config: Config)` function gathers all JSON files matching the pattern.
-  - **Additional Processing Options:**  
+  - **Additional Processing Options:**
     - If `config.outputFileFormat` is set to either `"markdown"` or `"human_readable_markdown"`, then:
       - Each JSON object is converted into a formatted Markdown document via the `convertToMarkdown` function.
       - This function uses Turndown (with custom rules) and may insert a Table of Contents.
@@ -124,16 +122,17 @@ Below is a detailed breakdown of what data each version produces and saves to JS
 
 ## **Summary Comparison**
 
-- **Older Version:**  
-  - **Stored Data:** `{ title, url, html }`  
-    - The “html” is the text content extracted directly via a selector (either XPath or CSS).  
-  - **Processing:**  
+- **Older Version:**
+
+  - **Stored Data:** `{ title, url, html }`
+    - The “html” is the text content extracted directly via a selector (either XPath or CSS).
+  - **Processing:**
     - Minimal processing; no advanced parsing besides selecting text.
 
-- **Newer Version:**  
-  - **Stored Data:** `{ title, url, content, textContent, excerpt, byline, siteName }`  
+- **Newer Version:**
+  - **Stored Data:** `{ title, url, content, textContent, excerpt, byline, siteName }`
     - The content is enhanced by processing the full page with Readability to extract a structured and “readable” version of the article.
-  - **Processing:**  
+  - **Processing:**
     - Involves getting the full HTML via `page.content()`, processing it with JSDOM and Readability, and then optionally converting it to Markdown during the aggregation phase.
 
 Both versions ultimately rely on the Crawlee framework’s mechanism to store intermediate JSON files in `storage/datasets/default` and then later combine them into a final aggregate file.
@@ -203,7 +202,7 @@ Insert the following helper function (e.g., just after the `waitForXPath` functi
 function minimalisticTextContent(html: string): string {
   const dom = new JSDOM(html);
   const document = dom.window.document;
-  
+
   // Recursively remove all attributes from elements to simplify the HTML structure.
   const cleanElement = (element: Element) => {
     for (const attr of Array.from(element.attributes)) {
@@ -216,7 +215,7 @@ function minimalisticTextContent(html: string): string {
   };
 
   cleanElement(document.body);
-  
+
   // Return the modified innerHTML which maintains basic tags but without extra attributes.
   return document.body.innerHTML;
 }
@@ -238,7 +237,7 @@ These changes will ensure that your JSON output in the newer version no longer c
 
 _**User**_
 
-very nice, except i do not think it should strip the extra inside <scg> tags and the nodes therein as tha removes the image data, 
+very nice, except i do not think it should strip the extra inside <scg> tags and the nodes therein as tha removes the image data,
 
 ---
 
@@ -252,7 +251,7 @@ Below is the updated diff for the `minimalisticTextContent` function in `src/cor
  function minimalisticTextContent(html: string): string {
    const dom = new JSDOM(html);
    const document = dom.window.document;
-   
+
 -  // Recursively remove all attributes from elements to simplify the HTML structure.
 -  const cleanElement = (element: Element) => {
 -    for (const attr of Array.from(element.attributes)) {
@@ -280,9 +279,9 @@ Below is the updated diff for the `minimalisticTextContent` function in `src/cor
 +      cleanElement(child);
 +    }
 +  };
- 
+
    cleanElement(document.body);
-   
+
    // Return the modified innerHTML which maintains basic tags but without extra attributes.
    return document.body.innerHTML;
  }
@@ -296,8 +295,8 @@ Below is the updated diff for the `minimalisticTextContent` function in `src/cor
   The `cleanElement` function has been updated to check if the current element's tag is either `<scg>` or `<svg>` (using `tagName.toLowerCase()`). If it matches, it returns without stripping any attributes from that element or its children. This ensures that any image or graphic data (typically stored in such tags) remains intact.
 
 - **Preserved Data:**  
-  All other elements not matching these tag names will have their attributes removed to maintain a minimalistic HTML structure.  
- 
+  All other elements not matching these tag names will have their attributes removed to maintain a minimalistic HTML structure.
+
 Apply this diff to your `src/core.ts` file, and the image/graphic data inside `<scg>` (and `<svg>`) elements will remain unaffected.
 
 ---
@@ -333,7 +332,4 @@ The update removes the `textContent` property from the object that is being sent
 
 ---
 
-
-
 ---
-

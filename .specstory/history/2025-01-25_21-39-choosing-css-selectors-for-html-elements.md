@@ -4,14 +4,13 @@
 
 _**User**_
 
-when choosing a selector, 
+when choosing a selector,
 .class
 #ID
 
-what about choosing a 
+what about choosing a
+
 <article>
-
-
 
 ---
 
@@ -28,6 +27,7 @@ article {
 This selector will apply styles to all `<article>` elements in your HTML document. If you want to be more specific, you can combine it with class or ID selectors:
 
 - To select an `<article>` with a specific class:
+
   ```css
   article.some-class {
     /* Styles for articles with class 'some-class' */
@@ -69,7 +69,4 @@ This command will output all the paths to keys in the JSON, which can be useful 
 
 ---
 
-
-
 ---
-

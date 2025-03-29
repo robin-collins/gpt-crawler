@@ -4,7 +4,7 @@
 
 _**User**_
 
- in `<pre><code>code goes here</code></pre>` codeblocks, is there usually a place where the language is put?
+in `<pre><code>code goes here</code></pre>` codeblocks, is there usually a place where the language is put?
 
 ---
 
@@ -20,6 +20,7 @@ def hello_world():
 ```
 
 Common language classes include:
+
 - `language-python`
 - `language-javascript`
 - `language-java`
@@ -31,7 +32,4 @@ Without this language specification, the code block will still work, but syntax 
 
 ---
 
-
-
 ---
-

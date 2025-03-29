@@ -4,8 +4,7 @@
 
 _**User**_
 
-Below is an explanation comparing the two versions of the crawling pipeline—one from the pre-readability implementation @core-pre-readability.ts and the current implementation in @core.ts  with a focus on when and how the custom onVisitPage hook is applied. This analysis does not propose further code changes but explains the differences and their implications.
-
+Below is an explanation comparing the two versions of the crawling pipeline—one from the pre-readability implementation @core-pre-readability.ts and the current implementation in @core.ts with a focus on when and how the custom onVisitPage hook is applied. This analysis does not propose further code changes but explains the differences and their implications.
 
 ---
 
@@ -19,38 +18,39 @@ Below is an explanation outlining the primary differences between the two implem
 
 - **Pre-Readability Implementation (`src/core-pre-readability.ts`):**  
   The custom hook is called immediately after the basic page data is pushed. It directly passes the crawler’s internal `pushData` function when invoking the hook:
-  
+
   ```typescript
   if (config.onVisitPage) {
     await config.onVisitPage({ page, pushData });
   }
   ```
-  
+
   However, this approach directly exposes the raw `pushData` function (which has its own type signature), and—as indicated by the linter error—the function’s parameters may not satisfy the expected type of the hook’s callback.
 
 - **Current Implementation (`src/core.ts`):**  
   Before the hook is applied, a simple wrapper called `pushDataWrapper` is created:
-  
+
   ```typescript
   const pushDataWrapper = async (data: any) => {
     await pushData(data);
   };
-  
+
   // Later...
   if (config.onVisitPage) {
     await config.onVisitPage({ page, pushData: pushDataWrapper });
   }
   ```
-  
+
   This wrapper standardizes the type signature, ensuring that it meets the expected type `(args: any, ...args: unknown[]) => Promise<void>`. This minimizes the risk of type incompatibility issues that were present in the pre-readability version.
 
 ---
 
 ### **2. When the Hook Is Invoked**
 
-- **Timing:**  
-  - In both versions, the `onVisitPage` hook is invoked **after** the main page data has been extracted and pushed.  
-  - **Pre-readability:** The data pushed is a simple object with properties like `title`, `url`, and a basic HTML extraction via `getPageHtml`.  
+- **Timing:**
+
+  - In both versions, the `onVisitPage` hook is invoked **after** the main page data has been extracted and pushed.
+  - **Pre-readability:** The data pushed is a simple object with properties like `title`, `url`, and a basic HTML extraction via `getPageHtml`.
   - **Current version:** The data pushed has been enriched using the Readability library (with `JSDOM`), resulting in fields like `content`, `textContent`, `excerpt`, `byline`, and `siteName`.
 
 - **Implication:**  
@@ -65,6 +65,7 @@ Below is an explanation outlining the primary differences between the two implem
 
 - **Wrapper Benefits in the Current Version:**  
   By introducing `pushDataWrapper` in `src/core.ts`, the implementation wraps the raw function, ensuring it conforms to the expected signature for `onVisitPage`. This more explicit method:
+
   - Provides a uniform interface that custom logic can reliably use.
   - Avoids type incompatibilities, making the hook easier (and safer) to extend or customize.
 
@@ -96,15 +97,16 @@ can it be wrapped but still apply the custom hook prior to readability touching 
 
 _**Assistant**_
 
-Below is one approach that both wraps the `pushData` function and lets your custom `onVisitPage` hook run *before* Readability processes the page content. In other words, the hook will be applied on the untouched (raw) page before the readability extraction occurs.
+Below is one approach that both wraps the `pushData` function and lets your custom `onVisitPage` hook run _before_ Readability processes the page content. In other words, the hook will be applied on the untouched (raw) page before the readability extraction occurs.
 
 A diff for the request handler in `src/core.ts` might look like this:
 
 ---
 
-**Explanation:**  
-1. We first create the `pushDataWrapper` as before.  
-2. We then call the custom hook (if provided) immediately after waiting for the selector but _before_ fetching the page content for Readability. This lets any custom logic in your hook work on the raw page.  
+**Explanation:**
+
+1. We first create the `pushDataWrapper` as before.
+2. We then call the custom hook (if provided) immediately after waiting for the selector but _before_ fetching the page content for Readability. This lets any custom logic in your hook work on the raw page.
 3. After the hook returns, we continue with fetching the raw HTML and running Readability, and finally call `pushDataWrapper` to push the processed content.
 
 ---
@@ -201,7 +203,7 @@ With this change, the `pushData` function is still wrapped (via `pushDataWrapper
 
 _**User**_
 
-it seems that there is still two versions being saved, eg @d2-docs.json see how the json file has the two entries, but the console output shows only 1 page scraped.you can also see how one is the pre-readability version, and one is post readability. 
+it seems that there is still two versions being saved, eg @d2-docs.json see how the json file has the two entries, but the console output shows only 1 page scraped.you can also see how one is the pre-readability version, and one is post readability.
 
 i did not the issue of when the custom hook applied is resolved, and it was applied to both the versions
 
@@ -217,7 +219,7 @@ Below is an updated diff for your `src/core.ts` file that adds a tracker to ensu
 
 1. We introduce a tracker variable (`hookPushed`) to record if the custom hook’s pushData call has already been made.
 2. We update the `pushDataWrapper` so that it sets the tracker’s flag when it’s called.
-3. After processing the page with Readability, we conditionally call `pushDataWrapper` only if the hook has not already pushed data. This avoids saving both the pre-Readability (custom hook) version *and* the post-Readability processed version.
+3. After processing the page with Readability, we conditionally call `pushDataWrapper` only if the hook has not already pushed data. This avoids saving both the pre-Readability (custom hook) version _and_ the post-Readability processed version.
 
 ---
 
@@ -297,7 +299,6 @@ _**User**_
 
 i do not understand your reasoning or update at all, why do we need to check when the hook is processed, when the hook 'pushes data' isnt it pushing it to playwright, and then after that the jsdom generates for readability? i do not understand why the hook would push twice? please explain or figure out what is going on?
 
-
 ---
 
 _**Assistant**_
@@ -312,7 +313,8 @@ Below is an explanation of what’s happening and why we introduced the check wi
    In your code, the custom hook (`onVisitPage`) is called before the Readability processing. This means that if your hook decides to call the provided `pushData` function (via the wrapped version), it will immediately push data—for example, the raw page content.
 
 2. **Default Behavior After Readability:**  
-   After the custom hook is executed, the crawler code _always_ goes on to fetch the page content, process it with Readability, and then _pushes_ the processed result. That means if your hook doesn't *block* the default push, then you end up with two pushes:
+   After the custom hook is executed, the crawler code _always_ goes on to fetch the page content, process it with Readability, and then _pushes_ the processed result. That means if your hook doesn't _block_ the default push, then you end up with two pushes:
+
    - One from your hook (pre-Readability version)
    - One from the default logic (post-Readability version)
 
@@ -334,7 +336,7 @@ The idea behind the tracker is to let the code know if the custom hook already p
    The custom hook is invoked and is given the wrapped `pushData` function. If the hook wants to push data, it will call this function, and the tracker will mark that a push has occurred.
 
 4. **After Readability Processing:**  
-   Then, when the code reaches the default block (i.e., the Readability processing), it checks the tracker.  
+   Then, when the code reaches the default block (i.e., the Readability processing), it checks the tracker.
    - **If the hook already pushed data** (i.e., `hookPushed.pushed` is `true`), the default processed push is skipped.
    - **If the hook did not push data** (i.e., `hookPushed.pushed` is still `false`), the default logic pushes the processed (Readability) version.
 
@@ -343,7 +345,8 @@ The idea behind the tracker is to let the code know if the custom hook already p
 ### **Why Would the Hook Push Data Twice?**
 
 Without the tracker, the code would always push two versions:
-- **Pre-Readability:** (from the custom hook)  
+
+- **Pre-Readability:** (from the custom hook)
 - **Post-Readability:** (from the default logic)
 
 If your custom hook, for instance, calls `pushData` itself (because it wants to work with the untouched page) and then returns, you end up with two pushes for one page. The tracker lets us avoid that duplicate by “remembering” that a push already happened and skipping the second push.
@@ -384,6 +387,7 @@ Below is an explanation that should clarify what the `pushData` function does an
 
 - **Usage in Your Code:**  
   In your current implementation, there are two points where `pushData` might be called:
+
   1. **Inside the Custom On-Visit Hook:**  
      If you have a custom `onVisitPage` hook defined in your config, then when the crawler hits that page it calls:
      ```js
@@ -392,7 +396,6 @@ Below is an explanation that should clarify what the `pushData` function does an
      }
      ```
      If your `onVisitPage` hook calls the provided `pushData` (using the wrapped version), it pushes one data object—typically a version of the page before any Readability processing.
-  
   2. **After Readability Processing:**  
      Regardless of what the hook does, the crawler then proceeds to fetch the page’s HTML again, processes it with Readability, and finally calls:
      ```js
@@ -414,6 +417,7 @@ Below is an explanation that should clarify what the `pushData` function does an
 
 - **Double Invocation:**  
   If your custom hook uses the provided `pushData` (via its wrapper), then **both** the hook (pre-Readability) _and_ the default logic (post-Readability) call `pushData`. This results in:
+
   - One entry with the raw version of the page (handled by your hook).
   - One entry with the Readability-processed version (pushed by the default logic).
 
@@ -426,6 +430,7 @@ Below is an explanation that should clarify what the `pushData` function does an
 
 - **Decide Which Version to Keep:**  
   If you prefer that your custom hook’s work (pre-Readability) should be the only version saved, your hook should call `pushData` and then either:
+
   - Signal to the default logic that it shouldn’t run the second push (using a tracker, as in the previous diff), or
   - The default logic could be modified to only push the processed result if the hook didn’t push anything.
 
@@ -457,11 +462,17 @@ Yes, the custom hook can simply perform modifications on the Playwright page wit
 In a typical flow, you might want your custom hook to modify the page (for example, clicking buttons, waiting for dynamic content, or even removing unwanted elements) and then let the default logic continue. In that case, your custom hook would look something like this:
 
 ```typescript
-async function customOnVisitPage({ page, pushData }: { page: Page; pushData: (data: any) => Promise<void> }) {
+async function customOnVisitPage({
+  page,
+  pushData,
+}: {
+  page: Page;
+  pushData: (data: any) => Promise<void>;
+}) {
   // Do your custom actions on the page. For example:
   await page.evaluate(() => {
     // Remove an element or modify the DOM
-    const elem = document.querySelector('.unwanted-element');
+    const elem = document.querySelector(".unwanted-element");
     if (elem) {
       elem.remove();
     }
@@ -516,20 +527,20 @@ I hope this clarifies the behavior. Let me know if you have any further question
 _**User**_
 
 then how do i overcome [{
-	"resource": "/d:/projects/gpt-crawler/config.ts",
-	"owner": "typescript",
-	"code": "6133",
-	"severity": 4,
-	"message": "'pushData' is declared but its value is never read.",
-	"source": "ts",
-	"startLineNumber": 14,
-	"startColumn": 31,
-	"endLineNumber": 14,
-	"endColumn": 39,
-	"tags": [
-		1
-	],
-	"modelVersionId": 193
+"resource": "/d:/projects/gpt-crawler/config.ts",
+"owner": "typescript",
+"code": "6133",
+"severity": 4,
+"message": "'pushData' is declared but its value is never read.",
+"source": "ts",
+"startLineNumber": 14,
+"startColumn": 31,
+"endLineNumber": 14,
+"endColumn": 39,
+"tags": [
+1
+],
+"modelVersionId": 193
 }]
 
 ---
@@ -541,7 +552,13 @@ You can solve this by indicating to TypeScript that you intentionally are not us
 For example, if your custom hook is declared like this:
 
 ```typescript
-async function customOnVisitPage({ page, pushData }: { page: Page; pushData: (data: any) => Promise<void> }) {
+async function customOnVisitPage({
+  page,
+  pushData,
+}: {
+  page: Page;
+  pushData: (data: any) => Promise<void>;
+}) {
   // Your custom logic here; pushData is intentionally not used.
   await page.evaluate(() => {
     // Modify the page if needed
@@ -566,7 +583,7 @@ By renaming the parameter, TypeScript no longer complains that `pushData` is dec
 
 _**User**_
 
-can you explain why the code produced a markdown file even though the config clearly stated json.  its weird cos i see in the storage\datasets\default\ there is a single.json
+can you explain why the code produced a markdown file even though the config clearly stated json. its weird cos i see in the storage\datasets\default\ there is a single.json
 
 ---
 
@@ -588,6 +605,7 @@ outputFileFormat: "markdown",
 ```
 
 This tells the write function:
+
 - Combine the stored JSON files.
 - Convert the contents to Markdown (using the conversion logic in your code).
 - Save the final combined output as a Markdown file (`d2-docs.md`).
@@ -601,13 +619,10 @@ outputFileName: "d2-docs.json",
 outputFileFormat: "json",
 ```
 
-That way, after combining the JSON files, it would simply reverse or combine them without converting them to Markdown. 
+That way, after combining the JSON files, it would simply reverse or combine them without converting them to Markdown.
 
 In summary, the presence of JSON files in the dataset is expected—they’re intermediate storage. The final output file’s format is determined by the `outputFileFormat` field in your config, which in your case is set to `"markdown"`, hence the Markdown file.
 
 ---
 
-
-
 ---
-

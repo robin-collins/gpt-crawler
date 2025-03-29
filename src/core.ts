@@ -259,9 +259,7 @@ function convertToMarkdown(
       if (headerRow) {
         headerRow.querySelectorAll("th").forEach((th) => {
           headers.push(
-            turndownService
-              .turndown(th.innerHTML.trim())
-              .replace(/\n+/g, " ")
+            turndownService.turndown(th.innerHTML.trim()).replace(/\n+/g, " "),
           );
         });
         markdown += `| ${headers.join(" | ")} |\n`;
@@ -273,9 +271,7 @@ function convertToMarkdown(
         const cells: string[] = [];
         tr.querySelectorAll("td").forEach((td) => {
           cells.push(
-            turndownService
-              .turndown(td.innerHTML.trim())
-              .replace(/\n+/g, " ")
+            turndownService.turndown(td.innerHTML.trim()).replace(/\n+/g, " "),
           );
         });
         if (cells.length > 0) {

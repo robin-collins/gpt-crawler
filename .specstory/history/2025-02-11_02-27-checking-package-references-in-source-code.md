@@ -30,8 +30,6 @@ Let me search through the codebase for any references to these packages.
 
 ---
 
-
-
 Yes, I can see references to all of these packages in the codebase:
 
 1. `@mui/icons-material` is listed as a dependency in `package.json` with version `^6.4.1`
@@ -50,8 +48,6 @@ Let me check the webpack configuration file to see how these are being used.
 Read file: webpack.config.cjs
 
 ---
-
-
 
 From what I can see:
 
@@ -76,6 +72,7 @@ _**Assistant**_
 I apologize for not focusing solely on the provided files. Let me analyze just the files that were explicitly provided in the conversation:
 
 Looking at the attached files:
+
 1. `src/cli.ts`
 2. `src/core.ts`
 3. `src/main.ts`
@@ -86,6 +83,7 @@ Looking at the attached files:
 In these specific files, there is only one reference to `@mui/icons-material` which appears in the `<recently_viewed_files>` list showing `node_modules/@mui/icons-material/esm/Battery60.js` was recently viewed.
 
 There are no direct references to:
+
 - `@mui/icons-material` in the actual source code
 - `@babel/core`
 - `@babel/preset-react`
@@ -95,7 +93,4 @@ I apologize for going beyond the scope of the provided files in my previous resp
 
 ---
 
-
-
 ---
-

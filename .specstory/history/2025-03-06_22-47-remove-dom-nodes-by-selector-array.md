@@ -11,10 +11,10 @@ onVisitPage: async ({ page, pushData: _pushData }) => {
   await page.evaluate(() => {
     // Select all pre elements that contain code blocks
     const codeBlocks = document.querySelectorAll('pre');
-    
+
     codeBlocks.forEach(codeBlock => {
       if (!(codeBlock instanceof HTMLElement)) return;
-      
+
       // Find the actual code content, which is within a code element
       const codeElement = codeBlock.querySelector('code');
       if (!codeElement) return;
@@ -22,7 +22,7 @@ onVisitPage: async ({ page, pushData: _pushData }) => {
       // Get all text content, removing special characters and extra whitespace
       let codeText = '';
       const codeLines = codeElement.textContent?.split('\n') || [];
-      
+
       codeLines.forEach(line => {
         // Remove line numbers and their associated elements
         const cleanLine = line
@@ -30,7 +30,7 @@ onVisitPage: async ({ page, pushData: _pushData }) => {
           .replace(/^\s*\$\s/, '$  ') // Preserve command prompts but normalize spacing
           .replace(/^.*codelineno.*$/, '') // Remove line number anchor elements
           .trim();
-          
+
         if (cleanLine && !cleanLine.startsWith('$ powershell')) { // Skip powershell commands
           codeText += cleanLine + '\n';
         }
@@ -81,17 +81,17 @@ Now I'll create the function to remove DOM nodes based on an array of selectors.
 ---
 
 ```diff
-  
+
   //Custom onVisitPage function to remove nodes from the DOM based on the 'selector' parameter.
-- 
+-
 + export const RemoveNodesFromDOM = async ({ page, pushData: _pushData }) => {
 +   await page.evaluate((selectors) => {
 +     if (!selectors || !Array.isArray(selectors)) return;
-+     
++
 +     selectors.forEach(selector => {
 +       // Find all elements matching the selector
 +       const elements = document.querySelectorAll(selector);
-+       
++
 +       // Remove each element from the DOM
 +       elements.forEach(element => {
 +         if (element && element.parentNode) {
@@ -101,7 +101,7 @@ Now I'll create the function to remove DOM nodes based on an array of selectors.
 +     });
 +   }, page.evaluate(() => window.selectors || [])); // Get selectors from window context or use empty array
 + };
-  
+
   export const defaultConfig: Config = {
 ```
 
@@ -118,10 +118,10 @@ I notice that the function I created has a potential issue - it's trying to get 
 -     if (!selectors || !Array.isArray(selectors)) return;
 +   // Get the selectors from the config
 +   const selectors = ['.mod-footer.mod-ui', '.outline-view-outer.node-insert-event']; // Default example selectors
-+   
++
 +   await page.evaluate((selectorsToRemove) => {
 +     if (!selectorsToRemove || !Array.isArray(selectorsToRemove)) return;
-      
+
 -     selectors.forEach(selector => {
 +     selectorsToRemove.forEach(selector => {
         // Find all elements matching the selector
@@ -131,13 +131,13 @@ I notice that the function I created has a potential issue - it's trying to get 
 -   }, page.evaluate(() => window.selectors || [])); // Get selectors from window context or use empty array
 +   }, selectors);
   };
-  
+
     outputFileName: "obsidian-ref-css-vars.md",
     outputFileFormat: "markdown",
 -   onVisitPage: RemoveLinksToPage,
 +   onVisitPage: RemoveNodesFromDOM,
     //onProcessMarkdown: addLanguageToCodeBlocks,
-  
+
 ```
 
 ---
@@ -147,19 +147,19 @@ I see that I've hardcoded the selectors in the function, which isn't ideal. Let'
 ---
 
 ```diff
-  
+
   //Custom onVisitPage function to remove nodes from the DOM based on the 'selector' parameter.
 - export const RemoveNodesFromDOM = async ({ page, pushData: _pushData }) => {
 -   // Get the selectors from the config
 -   const selectors = ['.mod-footer.mod-ui', '.outline-view-outer.node-insert-event']; // Default example selectors
--   
+-
 -   await page.evaluate((selectorsToRemove) => {
 -     if (!selectorsToRemove || !Array.isArray(selectorsToRemove)) return;
 + export const createRemoveNodesFunction = (selectorsToRemove: string[]) => {
 +   return async ({ page, pushData: _pushData }) => {
 +     await page.evaluate((selectors) => {
 +       if (!selectors || !Array.isArray(selectors)) return;
-        
+
 -     selectorsToRemove.forEach(selector => {
 +       selectors.forEach(selector => {
           // Find all elements matching the selector
@@ -170,13 +170,13 @@ I see that I've hardcoded the selectors in the function, which isn't ideal. Let'
 +     }, selectorsToRemove);
     };
 + };
-+ 
++
 + // Example usage with specific selectors
 + export const RemoveNodesFromDOM = createRemoveNodesFunction([
-+   '.mod-footer.mod-ui', 
++   '.mod-footer.mod-ui',
 +   '.outline-view-outer.node-insert-event'
 + ]);
-  
+
   export const defaultConfig: Config = {
 ```
 
@@ -187,8 +187,8 @@ Now I'll provide a complete example of how to use this function in your project.
 ---
 
 ```diff
-  
-  
+
+
 +   // Example of using the createRemoveNodesFunction with custom selectors:
 +   // onVisitPage: createRemoveNodesFunction([
 +   //   '.navigation-section',  // Remove navigation
@@ -196,8 +196,8 @@ Now I'll provide a complete example of how to use this function in your project.
 +   //   '.footer',              // Remove footer
 +   //   '.ads-container'        // Remove ads
 +   // ]),
-  
-    
+
+
 ```
 
 ---
@@ -209,20 +209,24 @@ Perfect! Now let me explain how to use the function I've created:
 I've created a flexible function that allows you to remove DOM elements based on CSS selectors. Here's how it works:
 
 1. **The `createRemoveNodesFunction` factory function**:
+
    - This function takes an array of CSS selectors as input
    - It returns an `onVisitPage` function that can be used in your crawler configuration
    - The returned function will remove all elements matching the provided selectors from the page
 
 2. **Example usage in your config**:
+
    - I've created a default implementation called `RemoveNodesFromDOM` that removes elements with the selectors `.mod-footer.mod-ui` and `.outline-view-outer.node-insert-event`
    - This is currently set as the `onVisitPage` function in your config
 
 3. **How to customize**:
+
    - You can create your own custom function with different selectors
    - I've added a commented example showing how to do this with different selectors
    - Simply uncomment and modify the example to use your own selectors
 
 4. **How it works**:
+
    - When the crawler visits a page, it will run the `onVisitPage` function
    - The function uses `page.evaluate()` to run JavaScript in the context of the page
    - It finds all elements matching each selector and removes them from the DOM
@@ -261,6 +265,7 @@ Both examples are functionally correct, but they have different approaches:
    This is the example you provided initially for code block cleaning. It's also correct and follows the same pattern.
 
 The issue with my implementation is that I didn't properly type the parameters in the `createRemoveNodesFunction`. The TypeScript linter is complaining about:
+
 - `page` and `_pushData` having implicit `any` types
 - The `selectors` parameter in the `page.evaluate` function having an implicit `any` type
 
@@ -283,10 +288,10 @@ onVisitPage: async ({ page, pushData: _pushData }) => {
   await page.evaluate(() => {
     // Select all pre elements that contain code blocks
     const codeBlocks = document.querySelectorAll('pre');
-    
+
     codeBlocks.forEach(codeBlock => {
       if (!(codeBlock instanceof HTMLElement)) return;
-      
+
       // Find the actual code content, which is within a code element
       const codeElement = codeBlock.querySelector('code');
       if (!codeElement) return;
@@ -294,7 +299,7 @@ onVisitPage: async ({ page, pushData: _pushData }) => {
       // Get all text content, removing special characters and extra whitespace
       let codeText = '';
       const codeLines = codeElement.textContent?.split('\n') || [];
-      
+
       codeLines.forEach(line => {
         // Remove line numbers and their associated elements
         const cleanLine = line
@@ -302,7 +307,7 @@ onVisitPage: async ({ page, pushData: _pushData }) => {
           .replace(/^\s*\$\s/, '$  ') // Preserve command prompts but normalize spacing
           .replace(/^.*codelineno.*$/, '') // Remove line number anchor elements
           .trim();
-          
+
         if (cleanLine && !cleanLine.startsWith('$ powershell')) { // Skip powershell commands
           codeText += cleanLine + '\n';
         }
@@ -335,20 +340,20 @@ I'll fix the type issues in the existing function and create a new separate func
 
 ---
 
-```diff
+````diff
   import { Config } from "./src/config";
 + import type { Page } from "playwright";
-  
+
   // Helper function to add language identifiers to code blocks
     return markdown.replace(/```\n/g, "```text\n");
   }
-+ 
++
 + // Type for the onVisitPage function parameters
 + type OnVisitPageParams = {
 +   page: Page;
 +   pushData: (data: any) => Promise<void>;
 + };
-  
+
   //Custom onVisitPage function to remove nodes from the DOM based on the 'selector' parameter.
   export const createRemoveNodesFunction = (selectorsToRemove: string[]) => {
 -   return async ({ page, pushData: _pushData }) => {
@@ -356,27 +361,27 @@ I'll fix the type issues in the existing function and create a new separate func
 +   return async ({ page, pushData: _pushData }: OnVisitPageParams): Promise<void> => {
 +     await page.evaluate((selectors: string[]) => {
         if (!selectors || !Array.isArray(selectors)) return;
-        
+
     '.outline-view-outer.node-insert-event'
   ]);
-+ 
++
 + // Function to clean code blocks by removing line numbers and formatting
 + export const CleanCodeBlocks = async ({ page, pushData: _pushData }: OnVisitPageParams): Promise<void> => {
 +   await page.evaluate(() => {
 +     // Select all pre elements that contain code blocks
 +     const codeBlocks = document.querySelectorAll('pre');
-+     
++
 +     codeBlocks.forEach(codeBlock => {
 +       if (!(codeBlock instanceof HTMLElement)) return;
-+       
++
 +       // Find the actual code content, which is within a code element
 +       const codeElement = codeBlock.querySelector('code');
 +       if (!codeElement) return;
-+ 
++
 +       // Get all text content, removing special characters and extra whitespace
 +       let codeText = '';
 +       const codeLines = codeElement.textContent?.split('\n') || [];
-+       
++
 +       codeLines.forEach(line => {
 +         // Remove line numbers and their associated elements
 +         const cleanLine = line
@@ -384,19 +389,19 @@ I'll fix the type issues in the existing function and create a new separate func
 +           .replace(/^\s*\$\s/, '$  ') // Preserve command prompts but normalize spacing
 +           .replace(/^.*codelineno.*$/, '') // Remove line number anchor elements
 +           .trim();
-+           
++
 +         if (cleanLine && !cleanLine.startsWith('$ powershell')) { // Skip powershell commands
 +           codeText += cleanLine + '\n';
 +         }
 +       });
-+ 
++
 +       // Create new clean elements
 +       const newPre = document.createElement('pre');
 +       const newCode = document.createElement('code');
 +       newCode.className = 'language-bash';
 +       newCode.textContent = codeText.trim();
 +       newPre.appendChild(newCode);
-+ 
++
 +       // Replace the old complex structure with our clean one
 +       if (codeBlock.parentNode) {
 +         codeBlock.parentNode.replaceChild(newPre, codeBlock);
@@ -404,7 +409,7 @@ I'll fix the type issues in the existing function and create a new separate func
 +     });
 +   });
 + };
-+ 
++
 + // Helper function to chain multiple onVisitPage functions together
 + export const chainOnVisitFunctions = (...functions: ((params: OnVisitPageParams) => Promise<void>)[]) => {
 +   return async (params: OnVisitPageParams): Promise<void> => {
@@ -413,7 +418,7 @@ I'll fix the type issues in the existing function and create a new separate func
 +     }
 +   };
 + };
-  
+
   export const defaultConfig: Config = {
     outputFileName: "obsidian-ref-css-vars.md",
     outputFileFormat: "markdown",
@@ -424,29 +429,29 @@ I'll fix the type issues in the existing function and create a new separate func
 +     CleanCodeBlocks
 +   ),
     //onProcessMarkdown: addLanguageToCodeBlocks,
-  
+
     //   '.ads-container'        // Remove ads
     // ]),
-- 
--   
+-
+-
 -   //Custom onVisitPage function to remove numbering from code blocks and wrap them in triple backticks.
 -   //This version only modifies the content over the page and does not push or return any data.
 -   // onVisitPage: async ({ page, pushData: _pushData }) => {
 -   //   await page.evaluate(() => {
 -   //     // Select all pre elements that contain code blocks
 -   //     const codeBlocks = document.querySelectorAll('pre');
--       
+-
 -   //     codeBlocks.forEach(codeBlock => {
 -   //       if (!(codeBlock instanceof HTMLElement)) return;
--         
+-
 -   //       // Find the actual code content, which is within a code element
 -   //       const codeElement = codeBlock.querySelector('code');
 -   //       if (!codeElement) return;
-- 
+-
 -   //       // Get all text content, removing special characters and extra whitespace
 -   //       let codeText = '';
 -   //       const codeLines = codeElement.textContent?.split('\n') || [];
--         
+-
 -   //       codeLines.forEach(line => {
 -   //         // Remove line numbers and their associated elements
 -   //         const cleanLine = line
@@ -454,19 +459,19 @@ I'll fix the type issues in the existing function and create a new separate func
 -   //           .replace(/^\s*\$\s/, '$  ') // Preserve command prompts but normalize spacing
 -   //           .replace(/^.*codelineno.*$/, '') // Remove line number anchor elements
 -   //           .trim();
--             
+-
 -   //         if (cleanLine && !cleanLine.startsWith('$ powershell')) { // Skip powershell commands
 -   //           codeText += cleanLine + '\n';
 -   //         }
 -   //       });
-- 
+-
 -   //       // Create new clean elements
 -   //       const newPre = document.createElement('pre');
 -   //       const newCode = document.createElement('code');
 -   //       newCode.className = 'language-bash';
 -   //       newCode.textContent = codeText.trim();
 -   //       newPre.appendChild(newCode);
-- 
+-
 -   //       // Replace the old complex structure with our clean one
 -   //       if (codeBlock.parentNode) {
 -   //         codeBlock.parentNode.replaceChild(newPre, codeBlock);
@@ -475,27 +480,31 @@ I'll fix the type issues in the existing function and create a new separate func
 -   //   });
 -   // },
   };
-  
-```
+
+````
 
 ---
 
 Perfect! I've made several improvements to the code:
 
 1. **Fixed Type Issues**:
+
    - Added the `Page` type import from Playwright
    - Created a proper `OnVisitPageParams` type for the function parameters
    - Added proper type annotations to all functions and parameters
 
 2. **Created a Separate Code Block Cleaning Function**:
+
    - Added `CleanCodeBlocks` as a standalone function with the same functionality as your example
    - Properly typed it with the `OnVisitPageParams` type
 
 3. **Added a Function Chaining Helper**:
+
    - Created `chainOnVisitFunctions` that takes multiple functions and runs them in sequence
    - This allows you to combine multiple page modification functions
 
 4. **Updated the Default Config**:
+
    - Changed `onVisitPage` to use the chaining helper
    - Now it runs both `RemoveNodesFromDOM` and `CleanCodeBlocks` in sequence
 
@@ -505,6 +514,7 @@ Perfect! I've made several improvements to the code:
 ## How to Use These Functions
 
 1. **Using a Single Function**:
+
    ```typescript
    onVisitPage: RemoveNodesFromDOM,
    // OR
@@ -512,6 +522,7 @@ Perfect! I've made several improvements to the code:
    ```
 
 2. **Using Multiple Functions in Sequence**:
+
    ```typescript
    onVisitPage: chainOnVisitFunctions(
      RemoveNodesFromDOM,
@@ -520,12 +531,13 @@ Perfect! I've made several improvements to the code:
    ```
 
 3. **Creating Custom Node Removal Functions**:
+
    ```typescript
    const RemoveNavigation = createRemoveNodesFunction([
-     '.navigation', 
+     '.navigation',
      '.sidebar'
    ]);
-   
+
    onVisitPage: RemoveNavigation,
    // OR chain it with other functions
    onVisitPage: chainOnVisitFunctions(
@@ -566,24 +578,24 @@ Now I'll implement a chaining function for `onProcessMarkdown` and add some exam
 
 ---
 
-```diff
+````diff
     return markdown.replace(/```\n/g, "```text\n");
   }
-+ 
++
 + // Helper function to remove HTML comments from markdown
 + export function removeHtmlComments(markdown: string): string {
 +   return markdown.replace(/<!--[\s\S]*?-->/g, '');
 + }
-+ 
++
 + // Helper function to normalize headings (ensure proper spacing after # symbols)
 + export function normalizeHeadings(markdown: string): string {
 +   return markdown.replace(/^(#{1,6})([^ #])/gm, '$1 $2');
 + }
-  
+
   // Type for the onVisitPage function parameters
     };
   };
-+ 
++
 + // Helper function to chain multiple onProcessMarkdown functions together
 + export const chainMarkdownProcessors = (...processors: ((markdown: string) => string)[]) => {
 +   return (markdown: string): string => {
@@ -592,12 +604,12 @@ Now I'll implement a chaining function for `onProcessMarkdown` and add some exam
 +     }, markdown);
 +   };
 + };
-  
+
   export const defaultConfig: Config = {
       CleanCodeBlocks
     ),
 -   //onProcessMarkdown: addLanguageToCodeBlocks,
-- 
+-
 +   // Example of chaining multiple markdown processors together
 +   onProcessMarkdown: chainMarkdownProcessors(
 +     addLanguageToCodeBlocks,
@@ -605,8 +617,8 @@ Now I'll implement a chaining function for `onProcessMarkdown` and add some exam
 +     normalizeHeadings
 +   ),
   };
-  
-```
+
+````
 
 ---
 
@@ -622,6 +634,7 @@ I've added two new example markdown processing functions:
 ## 2. Markdown Processor Chaining Function
 
 I've created a `chainMarkdownProcessors` function that:
+
 - Takes multiple markdown processing functions as arguments
 - Returns a single function that applies each processor in sequence
 - Uses `reduce` to pass the output of each function to the next one
@@ -629,6 +642,7 @@ I've created a `chainMarkdownProcessors` function that:
 ## 3. Updated Configuration
 
 I've updated the `defaultConfig` to use the chaining function with three markdown processors:
+
 - `addLanguageToCodeBlocks` (your original function)
 - `removeHtmlComments` (new function)
 - `normalizeHeadings` (new function)
@@ -638,6 +652,7 @@ I've updated the `defaultConfig` to use the chaining function with three markdow
 The `chainMarkdownProcessors` function works differently from `chainOnVisitFunctions` because:
 
 1. **Different Function Signatures**:
+
    - `onVisitPage` functions take an object with `page` and `pushData` and return a Promise
    - `onProcessMarkdown` functions take a string and return a string
 
@@ -652,15 +667,15 @@ You can use this pattern to create and chain any number of markdown processing f
 ```typescript
 // Create custom markdown processors
 function addCustomFooter(markdown: string): string {
-  return markdown + '\n\n---\n*Generated with GPT-Crawler*';
+  return markdown + "\n\n---\n*Generated with GPT-Crawler*";
 }
 
 // Use them in your config
 onProcessMarkdown: chainMarkdownProcessors(
   addLanguageToCodeBlocks,
   removeHtmlComments,
-  addCustomFooter
-)
+  addCustomFooter,
+);
 ```
 
 This approach gives you a lot of flexibility to compose different markdown transformations without having to write complex functions that do multiple things.
@@ -671,13 +686,11 @@ _**User**_
 
 now, the type for onVisitPage, should that not be moved into the codebase under the /src folder in one of the following files.
 
-@backup-crawler-output.ts @cli.ts @config.ts @core.ts @main.ts @server.ts 
+@backup-crawler-output.ts @cli.ts @config.ts @core.ts @main.ts @server.ts
 
 The same for the two chain functions `chainOnVisitFunctions` and `chainMarkdownProcessors`, i think they should be inbuilt to the full codebase.
 
 Then i think there should a helpers file that is imported into the config.ts for the scrape that imports all the helper functions. thus keeping the config.ts file pretty clean
-
-
 
 ---
 
@@ -697,42 +710,42 @@ Let's create a new helpers file in the src directory:
 
 ---
 
-```diff
-- 
+````diff
+-
 + import type { Page } from "playwright";
-+ 
++
 + // Type for the onVisitPage function parameters
 + export type OnVisitPageParams = {
 +   page: Page;
 +   pushData: (data: any) => Promise<void>;
 + };
-+ 
++
 + // Helper function to add language identifiers to code blocks
 + export function addLanguageToCodeBlocks(markdown: string): string {
 +   // Replace code blocks that don't have a language specified
 +   return markdown.replace(/```\n/g, "```text\n");
 + }
-+ 
++
 + // Helper function to remove HTML comments from markdown
 + export function removeHtmlComments(markdown: string): string {
 +   return markdown.replace(/<!--[\s\S]*?-->/g, '');
 + }
-+ 
++
 + // Helper function to normalize headings (ensure proper spacing after # symbols)
 + export function normalizeHeadings(markdown: string): string {
 +   return markdown.replace(/^(#{1,6})([^ #])/gm, '$1 $2');
 + }
-+ 
++
 + // Factory function to create a DOM node removal function
 + export const createRemoveNodesFunction = (selectorsToRemove: string[]) => {
 +   return async ({ page, pushData: _pushData }: OnVisitPageParams): Promise<void> => {
 +     await page.evaluate((selectors: string[]) => {
 +       if (!selectors || !Array.isArray(selectors)) return;
-+       
++
 +       selectors.forEach(selector => {
 +         // Find all elements matching the selector
 +         const elements = document.querySelectorAll(selector);
-+         
++
 +         // Remove each element from the DOM
 +         elements.forEach(element => {
 +           if (element && element.parentNode) {
@@ -743,24 +756,24 @@ Let's create a new helpers file in the src directory:
 +     }, selectorsToRemove);
 +   };
 + };
-+ 
++
 + // Function to clean code blocks by removing line numbers and formatting
 + export const cleanCodeBlocks = async ({ page, pushData: _pushData }: OnVisitPageParams): Promise<void> => {
 +   await page.evaluate(() => {
 +     // Select all pre elements that contain code blocks
 +     const codeBlocks = document.querySelectorAll('pre');
-+     
++
 +     codeBlocks.forEach(codeBlock => {
 +       if (!(codeBlock instanceof HTMLElement)) return;
-+       
++
 +       // Find the actual code content, which is within a code element
 +       const codeElement = codeBlock.querySelector('code');
 +       if (!codeElement) return;
-+ 
++
 +       // Get all text content, removing special characters and extra whitespace
 +       let codeText = '';
 +       const codeLines = codeElement.textContent?.split('\n') || [];
-+       
++
 +       codeLines.forEach(line => {
 +         // Remove line numbers and their associated elements
 +         const cleanLine = line
@@ -768,19 +781,19 @@ Let's create a new helpers file in the src directory:
 +           .replace(/^\s*\$\s/, '$  ') // Preserve command prompts but normalize spacing
 +           .replace(/^.*codelineno.*$/, '') // Remove line number anchor elements
 +           .trim();
-+           
++
 +         if (cleanLine && !cleanLine.startsWith('$ powershell')) { // Skip powershell commands
 +           codeText += cleanLine + '\n';
 +         }
 +       });
-+ 
++
 +       // Create new clean elements
 +       const newPre = document.createElement('pre');
 +       const newCode = document.createElement('code');
 +       newCode.className = 'language-bash';
 +       newCode.textContent = codeText.trim();
 +       newPre.appendChild(newCode);
-+ 
++
 +       // Replace the old complex structure with our clean one
 +       if (codeBlock.parentNode) {
 +         codeBlock.parentNode.replaceChild(newPre, codeBlock);
@@ -788,7 +801,7 @@ Let's create a new helpers file in the src directory:
 +     });
 +   });
 + };
-+ 
++
 + // Helper function to chain multiple onVisitPage functions together
 + export const chainOnVisitFunctions = (...functions: ((params: OnVisitPageParams) => Promise<void>)[]) => {
 +   return async (params: OnVisitPageParams): Promise<void> => {
@@ -797,7 +810,7 @@ Let's create a new helpers file in the src directory:
 +     }
 +   };
 + };
-+ 
++
 + // Helper function to chain multiple onProcessMarkdown functions together
 + export const chainMarkdownProcessors = (...processors: ((markdown: string) => string)[]) => {
 +   return (markdown: string): string => {
@@ -806,13 +819,13 @@ Let's create a new helpers file in the src directory:
 +     }, markdown);
 +   };
 + };
-+ 
++
 + // Example usage with specific selectors
 + export const removeNodesFromDOM = createRemoveNodesFunction([
-+   '.mod-footer.mod-ui', 
++   '.mod-footer.mod-ui',
 +   '.outline-view-outer.node-insert-event'
-+ ]); 
-```
++ ]);
+````
 
 ---
 
@@ -822,17 +835,17 @@ Now, let's update the config.ts file to use our new helpers:
 
 ```diff
   import { Config } from "./src/config";
-+ import { 
-+   addLanguageToCodeBlocks, 
-+   removeHtmlComments, 
-+   normalizeHeadings, 
-+   removeNodesFromDOM, 
-+   cleanCodeBlocks, 
-+   chainOnVisitFunctions, 
-+   chainMarkdownProcessors 
++ import {
++   addLanguageToCodeBlocks,
++   removeHtmlComments,
++   normalizeHeadings,
++   removeNodesFromDOM,
++   cleanCodeBlocks,
++   chainOnVisitFunctions,
++   chainMarkdownProcessors
 + } from "./src/helpers";
   import type { Page } from "playwright";
-  
+
     // Example of chaining multiple functions together
     onVisitPage: chainOnVisitFunctions(
 -     RemoveNodesFromDOM,
@@ -843,7 +856,7 @@ Now, let's update the config.ts file to use our new helpers:
     // Example of chaining multiple markdown processors together
       normalizeHeadings
     ),
-+ 
++
 +   // Example of using the createRemoveNodesFunction with custom selectors:
 +   // onVisitPage: createRemoveNodesFunction([
 +   //   '.navigation-section',  // Remove navigation
@@ -852,7 +865,7 @@ Now, let's update the config.ts file to use our new helpers:
 +   //   '.ads-container'        // Remove ads
 +   // ]),
   };
-  
+
 ```
 
 ---
@@ -860,8 +873,6 @@ Now, let's update the config.ts file to use our new helpers:
 Now let's clean up the config.ts file by removing all the functions we've moved to helpers.ts:
 
 ---
-
-
 
 ---
 
@@ -873,13 +884,11 @@ Read file: config.ts
 
 ---
 
-
-
 ---
 
 _**User**_
 
-please continue, is there a way to import * to the config.ts from helpers so that as new functions are added the autoimport, or is that not a supported feature of ts
+please continue, is there a way to import \* to the config.ts from helpers so that as new functions are added the autoimport, or is that not a supported feature of ts
 
 ---
 
@@ -893,17 +902,17 @@ Let's update the config.ts file to use a wildcard import:
 
 ```diff
   import { Config } from "./src/config";
-- import { 
--   addLanguageToCodeBlocks, 
--   removeHtmlComments, 
--   normalizeHeadings, 
--   removeNodesFromDOM, 
--   cleanCodeBlocks, 
--   chainOnVisitFunctions, 
--   chainMarkdownProcessors 
+- import {
+-   addLanguageToCodeBlocks,
+-   removeHtmlComments,
+-   normalizeHeadings,
+-   removeNodesFromDOM,
+-   cleanCodeBlocks,
+-   chainOnVisitFunctions,
+-   chainMarkdownProcessors
 - } from "./src/helpers";
 + import * as helpers from "./src/helpers";
-  
+
   export const defaultConfig: Config = {
     outputFileFormat: "markdown",
     // Example of chaining multiple functions together
@@ -924,7 +933,7 @@ Let's update the config.ts file to use a wildcard import:
 +     helpers.removeHtmlComments,
 +     helpers.normalizeHeadings
     ),
-  
+
     // Example of using the createRemoveNodesFunction with custom selectors:
 -   // onVisitPage: createRemoveNodesFunction([
 +   // onVisitPage: helpers.createRemoveNodesFunction([
@@ -946,9 +955,9 @@ Great! The config.ts file is now clean and only contains the configuration objec
 
 ---
 
-```diff
+````diff
   import type { Page } from "playwright";
-  
+
 - // Type for the onVisitPage function parameters
 + /**
 +  * Type for the onVisitPage function parameters
@@ -957,7 +966,7 @@ Great! The config.ts file is now clean and only contains the configuration objec
     page: Page;
     pushData: (data: any) => Promise<void>;
   };
-  
+
 - // Helper function to add language identifiers to code blocks
 + /**
 +  * Helper function to add language identifiers to code blocks
@@ -968,7 +977,7 @@ Great! The config.ts file is now clean and only contains the configuration objec
     // Replace code blocks that don't have a language specified
     return markdown.replace(/```\n/g, "```text\n");
   }
-  
+
 - // Helper function to remove HTML comments from markdown
 + /**
 +  * Helper function to remove HTML comments from markdown
@@ -978,7 +987,7 @@ Great! The config.ts file is now clean and only contains the configuration objec
   export function removeHtmlComments(markdown: string): string {
     return markdown.replace(/<!--[\s\S]*?-->/g, '');
   }
-  
+
 - // Helper function to normalize headings (ensure proper spacing after # symbols)
 + /**
 +  * Helper function to normalize headings (ensure proper spacing after # symbols)
@@ -988,7 +997,7 @@ Great! The config.ts file is now clean and only contains the configuration objec
   export function normalizeHeadings(markdown: string): string {
     return markdown.replace(/^(#{1,6})([^ #])/gm, '$1 $2');
   }
-  
+
 - // Factory function to create a DOM node removal function
 + /**
 +  * Factory function to create a DOM node removal function
@@ -998,7 +1007,7 @@ Great! The config.ts file is now clean and only contains the configuration objec
   export const createRemoveNodesFunction = (selectorsToRemove: string[]) => {
     return async ({ page, pushData: _pushData }: OnVisitPageParams): Promise<void> => {
   };
-  
+
 - // Function to clean code blocks by removing line numbers and formatting
 + /**
 +  * Function to clean code blocks by removing line numbers and formatting
@@ -1007,7 +1016,7 @@ Great! The config.ts file is now clean and only contains the configuration objec
   export const cleanCodeBlocks = async ({ page, pushData: _pushData }: OnVisitPageParams): Promise<void> => {
     await page.evaluate(() => {
   };
-  
+
 - // Helper function to chain multiple onVisitPage functions together
 + /**
 +  * Helper function to chain multiple onVisitPage functions together
@@ -1017,7 +1026,7 @@ Great! The config.ts file is now clean and only contains the configuration objec
   export const chainOnVisitFunctions = (...functions: ((params: OnVisitPageParams) => Promise<void>)[]) => {
     return async (params: OnVisitPageParams): Promise<void> => {
   };
-  
+
 - // Helper function to chain multiple onProcessMarkdown functions together
 + /**
 +  * Helper function to chain multiple onProcessMarkdown functions together
@@ -1027,21 +1036,22 @@ Great! The config.ts file is now clean and only contains the configuration objec
   export const chainMarkdownProcessors = (...processors: ((markdown: string) => string)[]) => {
     return (markdown: string): string => {
   };
-  
+
 - // Example usage with specific selectors
 + /**
 +  * Example usage with specific selectors
 +  * Removes footer and outline elements from the DOM
 +  */
   export const removeNodesFromDOM = createRemoveNodesFunction([
-    '.mod-footer.mod-ui', 
-```
+    '.mod-footer.mod-ui',
+````
 
 ---
 
 Perfect! Now we have:
 
 1. A clean, well-organized `src/helpers.ts` file with:
+
    - Proper TypeScript types
    - JSDoc comments for better documentation
    - All the utility functions and types in one place
@@ -1072,29 +1082,29 @@ _**User**_
 I see one issue, putting the `removeNodesFromDom` function in the helpers isnt conducive to it being relevant on a 'per config' basis, so that function should be part of the config. Moving it though has caused errors.
 
 [{
-	"resource": "/d:/projects/gpt-crawler/config.ts",
-	"owner": "typescript",
-	"code": "2304",
-	"severity": 8,
-	"message": "Cannot find name 'createRemoveNodesFunction'.",
-	"source": "ts",
-	"startLineNumber": 8,
-	"startColumn": 35,
-	"endLineNumber": 8,
-	"endColumn": 60,
-	"modelVersionId": 179
+"resource": "/d:/projects/gpt-crawler/config.ts",
+"owner": "typescript",
+"code": "2304",
+"severity": 8,
+"message": "Cannot find name 'createRemoveNodesFunction'.",
+"source": "ts",
+"startLineNumber": 8,
+"startColumn": 35,
+"endLineNumber": 8,
+"endColumn": 60,
+"modelVersionId": 179
 },{
-	"resource": "/d:/projects/gpt-crawler/config.ts",
-	"owner": "typescript",
-	"code": "2339",
-	"severity": 8,
-	"message": "Property 'removeNodesFromDOM' does not exist on type 'typeof import(\"d:/projects/gpt-crawler/src/helpers\")'.",
-	"source": "ts",
-	"startLineNumber": 24,
-	"startColumn": 13,
-	"endLineNumber": 24,
-	"endColumn": 31,
-	"modelVersionId": 179
+"resource": "/d:/projects/gpt-crawler/config.ts",
+"owner": "typescript",
+"code": "2339",
+"severity": 8,
+"message": "Property 'removeNodesFromDOM' does not exist on type 'typeof import(\"d:/projects/gpt-crawler/src/helpers\")'.",
+"source": "ts",
+"startLineNumber": 24,
+"startColumn": 13,
+"endLineNumber": 24,
+"endColumn": 31,
+"modelVersionId": 179
 }]
 
 ---
@@ -1116,7 +1126,7 @@ Good, it seems the `removeNodesFromDOM` function has been removed from the helpe
 ---
 
 ```diff
-  
+
   /**
 -  * Example usage with specific selectors
 +  * Custom function to remove specific DOM elements
@@ -1124,7 +1134,7 @@ Good, it seems the `removeNodesFromDOM` function has been removed from the helpe
    */
 - export const removeNodesFromDOM = createRemoveNodesFunction([
 + const removeNodesFromDOM = helpers.createRemoveNodesFunction([
-    '.mod-footer.mod-ui', 
+    '.mod-footer.mod-ui',
     '.outline-view-outer.node-insert-event'
     // Example of chaining multiple functions together
     onVisitPage: helpers.chainOnVisitFunctions(
@@ -1133,8 +1143,8 @@ Good, it seems the `removeNodesFromDOM` function has been removed from the helpe
       helpers.cleanCodeBlocks
     ),
     ),
-  
--   
+
+-
 +   // Example of using the createRemoveNodesFunction with custom selectors:
 +   // onVisitPage: helpers.createRemoveNodesFunction([
 +   //   '.navigation-section',  // Remove navigation
@@ -1143,7 +1153,7 @@ Good, it seems the `removeNodesFromDOM` function has been removed from the helpe
 +   //   '.ads-container'        // Remove ads
 +   // ]),
   };
-  
+
 ```
 
 ---
@@ -1153,10 +1163,11 @@ Perfect! Now the config.ts file is properly structured:
 1. We're importing the helper functions using the wildcard import: `import * as helpers from "./src/helpers";`
 
 2. We're defining the `removeNodesFromDOM` function locally in the config file using the factory function from helpers:
+
    ```typescript
    const removeNodesFromDOM = helpers.createRemoveNodesFunction([
-     '.mod-footer.mod-ui', 
-     '.outline-view-outer.node-insert-event'
+     ".mod-footer.mod-ui",
+     ".outline-view-outer.node-insert-event",
    ]);
    ```
 
@@ -1181,10 +1192,11 @@ This approach has several advantages:
 This structure allows you to:
 
 1. Create multiple different node removal functions in the same config file:
+
    ```typescript
    const removeNavigation = helpers.createRemoveNodesFunction(['.navigation', '.sidebar']);
    const removeAds = helpers.createRemoveNodesFunction(['.ads', '.promotions']);
-   
+
    // Use them together
    onVisitPage: helpers.chainOnVisitFunctions(
      removeNavigation,
@@ -1219,13 +1231,11 @@ Cancelled
 
 ---
 
-
-
 ---
 
 _**User**_
 
-should the import * as helpers be a part of the main codebase, thus always available to the root directory config.ts
+should the import \* as helpers be a part of the main codebase, thus always available to the root directory config.ts
 
 ---
 
@@ -1245,7 +1255,7 @@ Since config.ts is in the root directory and imports directly from "./src/helper
   import { Config } from "./src/config";
 - import * as helpers from "./src/helpers";
 + import * as helpers from "./helpers";
-  
+
   /**
 ```
 
@@ -1258,8 +1268,6 @@ Now let's create the helpers.ts file in the root directory:
 Cancelled
 
 ---
-
-
 
 ---
 
@@ -1295,15 +1303,13 @@ No results found
 
 ---
 
-
-
 ---
 
 _**User**_
 
 @backup-crawler-output.ts @cli.ts @config.ts @core.ts @main.ts @server.ts @helpers.ts the codebase (provided) in the src/ folder. can we have the file it loads that is currently called 'config.ts' in the root folder of the project be named `scrape-config.ts` instead of config.ts, i find it confusing since there is also a `src/config.ts`
 
-i have already renamed the file `config.ts` to `scrape-config.ts`, and updated the reference to it in the @tsconfig.json Please implement the necessary changes in the `src/` folder files. Including ensuring that the helpers.ts is imported into the main codebase using * so that its auto available to the scrape-config.ts file
+i have already renamed the file `config.ts` to `scrape-config.ts`, and updated the reference to it in the @tsconfig.json Please implement the necessary changes in the `src/` folder files. Including ensuring that the helpers.ts is imported into the main codebase using \* so that its auto available to the scrape-config.ts file
 
 ---
 
@@ -1319,7 +1325,7 @@ Let's start by checking the main.ts file to update the import:
 - import { defaultConfig } from "../config.js";
 + import { defaultConfig } from "../scrape-config.js";
   import { crawl, write } from "./core.js";
-  
+
 ```
 
 ---
@@ -1334,7 +1340,7 @@ Now let's update the backup-crawler-output.ts file:
 - import { defaultConfig } from "../config.js";
 + import { defaultConfig } from "../scrape-config.js";
   import { glob } from "glob";
-  
+
 ```
 
 ---
@@ -1366,13 +1372,13 @@ Now let's create an index.ts file in the src directory to export the helpers mod
 ---
 
 ```diff
-- 
+-
 + // Export all helpers for use in scrape-config.ts
 + export * as helpers from './helpers';
-+ 
++
 + // Re-export other modules that might be needed
 + export { Config, configSchema } from './config';
-+ export { crawl, write } from './core'; 
++ export { crawl, write } from './core';
 ```
 
 ---
@@ -1385,7 +1391,7 @@ Now let's update the scrape-config.ts file to import helpers from the src/index.
 - import { Config } from "./src/config";
 - import * as helpers from "./src/helpers";
 + import { Config, helpers } from "./src/index";
-  
+
   /**
 ```
 
@@ -1409,13 +1415,11 @@ Cancelled
 
 ---
 
-
-
 ---
 
 _**User**_
 
-now with the 'helpers', i think they need to have some identifier in the name to clearly show which call they apply to, eg whether they are for onVisitPage or onProcessMarkdown. Currently its not clear  which does what. Infact i think there should be two helpers.ts files, one for each call
+now with the 'helpers', i think they need to have some identifier in the name to clearly show which call they apply to, eg whether they are for onVisitPage or onProcessMarkdown. Currently its not clear which does what. Infact i think there should be two helpers.ts files, one for each call
 
 ---
 
@@ -1431,9 +1435,9 @@ Let's implement this change:
 ---
 
 ```diff
-- 
+-
 + import type { Page } from "playwright";
-+ 
++
 + /**
 +  * Type for the onVisitPage function parameters
 +  */
@@ -1441,7 +1445,7 @@ Let's implement this change:
 +   page: Page;
 +   pushData: (data: any) => Promise<void>;
 + };
-+ 
++
 + /**
 +  * Factory function to create a DOM node removal function
 +  * @param selectorsToRemove - Array of CSS selectors for elements to remove
@@ -1451,11 +1455,11 @@ Let's implement this change:
 +   return async ({ page, pushData: _pushData }: OnVisitPageParams): Promise<void> => {
 +     await page.evaluate((selectors: string[]) => {
 +       if (!selectors || !Array.isArray(selectors)) return;
-+       
++
 +       selectors.forEach(selector => {
 +         // Find all elements matching the selector
 +         const elements = document.querySelectorAll(selector);
-+         
++
 +         // Remove each element from the DOM
 +         elements.forEach(element => {
 +           if (element && element.parentNode) {
@@ -1466,7 +1470,7 @@ Let's implement this change:
 +     }, selectorsToRemove);
 +   };
 + };
-+ 
++
 + /**
 +  * Function to clean code blocks by removing line numbers and formatting
 +  * @param params - The onVisitPage parameters
@@ -1475,18 +1479,18 @@ Let's implement this change:
 +   await page.evaluate(() => {
 +     // Select all pre elements that contain code blocks
 +     const codeBlocks = document.querySelectorAll('pre');
-+     
++
 +     codeBlocks.forEach(codeBlock => {
 +       if (!(codeBlock instanceof HTMLElement)) return;
-+       
++
 +       // Find the actual code content, which is within a code element
 +       const codeElement = codeBlock.querySelector('code');
 +       if (!codeElement) return;
-+ 
++
 +       // Get all text content, removing special characters and extra whitespace
 +       let codeText = '';
 +       const codeLines = codeElement.textContent?.split('\n') || [];
-+       
++
 +       codeLines.forEach(line => {
 +         // Remove line numbers and their associated elements
 +         const cleanLine = line
@@ -1494,19 +1498,19 @@ Let's implement this change:
 +           .replace(/^\s*\$\s/, '$  ') // Preserve command prompts but normalize spacing
 +           .replace(/^.*codelineno.*$/, '') // Remove line number anchor elements
 +           .trim();
-+           
++
 +         if (cleanLine && !cleanLine.startsWith('$ powershell')) { // Skip powershell commands
 +           codeText += cleanLine + '\n';
 +         }
 +       });
-+ 
++
 +       // Create new clean elements
 +       const newPre = document.createElement('pre');
 +       const newCode = document.createElement('code');
 +       newCode.className = 'language-bash';
 +       newCode.textContent = codeText.trim();
 +       newPre.appendChild(newCode);
-+ 
++
 +       // Replace the old complex structure with our clean one
 +       if (codeBlock.parentNode) {
 +         codeBlock.parentNode.replaceChild(newPre, codeBlock);
@@ -1514,7 +1518,7 @@ Let's implement this change:
 +     });
 +   });
 + };
-+ 
++
 + /**
 +  * Helper function to chain multiple onVisitPage functions together
 +  * @param functions - Array of onVisitPage functions to chain
@@ -1526,7 +1530,7 @@ Let's implement this change:
 +       await func(params);
 +     }
 +   };
-+ }; 
++ };
 ```
 
 ---
@@ -1535,8 +1539,8 @@ Now let's create the markdown helpers file:
 
 ---
 
-```diff
-- 
+````diff
+-
 + /**
 +  * Helper function to add language identifiers to code blocks
 +  * @param markdown - The markdown content to process
@@ -1546,7 +1550,7 @@ Now let's create the markdown helpers file:
 +   // Replace code blocks that don't have a language specified
 +   return markdown.replace(/```\n/g, "```text\n");
 + }
-+ 
++
 + /**
 +  * Helper function to remove HTML comments from markdown
 +  * @param markdown - The markdown content to process
@@ -1555,7 +1559,7 @@ Now let's create the markdown helpers file:
 + export function removeHtmlComments(markdown: string): string {
 +   return markdown.replace(/<!--[\s\S]*?-->/g, '');
 + }
-+ 
++
 + /**
 +  * Helper function to normalize headings (ensure proper spacing after # symbols)
 +  * @param markdown - The markdown content to process
@@ -1564,7 +1568,7 @@ Now let's create the markdown helpers file:
 + export function normalizeHeadings(markdown: string): string {
 +   return markdown.replace(/^(#{1,6})([^ #])/gm, '$1 $2');
 + }
-+ 
++
 + /**
 +  * Helper function to chain multiple markdown processor functions together
 +  * @param processors - Array of markdown processor functions to chain
@@ -1576,8 +1580,8 @@ Now let's create the markdown helpers file:
 +       return processor(processedMarkdown);
 +     }, markdown);
 +   };
-+ }; 
-```
++ };
+````
 
 ---
 
@@ -1590,7 +1594,7 @@ Now let's update the index.ts file to export these new helper modules:
 - export * as helpers from './helpers';
 + export * as visitPage from './visitPageHelpers';
 + export * as markdown from './markdownHelpers';
-  
+
   // Re-export other modules that might be needed
 ```
 
@@ -1603,7 +1607,7 @@ Now let's update the scrape-config.ts file to use the new helper modules:
 ```diff
 - import { Config, helpers } from "./src/index";
 + import { Config, visitPage, markdown } from "./src/index";
-  
+
   /**
    * Custom function to remove specific DOM elements
    * Removes footer and outline elements from the DOM
@@ -1620,7 +1624,7 @@ Now let's update the scrape-config.ts file to use the new helper modules:
 -   //   helpers.cleanCodeBlocks
 +   //   visitPage.cleanCodeBlocks
     // ),
-  
+
     // Example of chaining multiple markdown processors together
 -   // onProcessMarkdown: helpers.chainMarkdownProcessors(
 -   //   helpers.addLanguageToCodeBlocks,
@@ -1631,7 +1635,7 @@ Now let's update the scrape-config.ts file to use the new helper modules:
 +   //   markdown.removeHtmlComments,
 +   //   markdown.normalizeHeadings
     // ),
-  
+
 ```
 
 ---
@@ -1647,17 +1651,20 @@ Deleting the original helpers.ts file since we've replaced it with two more spec
 Perfect! We've successfully reorganized the helpers into two separate files with clear purposes:
 
 1. `src/visitPageHelpers.ts` - Contains functions related to the `onVisitPage` hook:
+
    - `createRemoveNodesFunction` - Creates a function to remove DOM elements
    - `cleanCodeBlocks` - Cleans code blocks in the DOM
    - `chainVisitFunctions` - Chains multiple onVisitPage functions together
 
 2. `src/markdownHelpers.ts` - Contains functions related to the `onProcessMarkdown` hook:
+
    - `addLanguageToCodeBlocks` - Adds language identifiers to code blocks
    - `removeHtmlComments` - Removes HTML comments from markdown
    - `normalizeHeadings` - Normalizes heading formatting
    - `chainMarkdownProcessors` - Chains multiple markdown processors together
 
 3. `src/index.ts` - Exports these helpers with clear namespaces:
+
    - `visitPage` - For onVisitPage helpers
    - `markdown` - For onProcessMarkdown helpers
 
@@ -1699,7 +1706,7 @@ I see an issue in the backup-crawler-output.ts file. It's still looking for "con
       const outputFiles = await glob(`${outputFileBase}*${outputFileExt}`);
 -     const configFile = "config.ts";
 +     const configFile = "scrape-config.ts";
-  
+
       // Function to generate unique filename if needed
 ```
 
@@ -1742,27 +1749,30 @@ Let's update the README.md file:
 
 ```diff
   #### Configure the crawler
-  
+
 - Open [config.ts](config.ts) and edit the `url` and `selector` properties to match your needs.
 + Open [scrape-config.ts](scrape-config.ts) and edit the `url` and `selector` properties to match your needs.
-  
+
   E.g. to crawl the Builder.io docs to make our custom GPT you can use:
-  ```
-  
+```
+
 - See [config.ts](src/config.ts) for all available options. Here is a sample of the common configuration options:
-+ See [src/config.ts](src/config.ts) for the Config type definition and [scrape-config.ts](scrape-config.ts) for all available options. Here is a sample of the common configuration options:
-  
+
+* See [src/config.ts](src/config.ts) for the Config type definition and [scrape-config.ts](scrape-config.ts) for all available options. Here is a sample of the common configuration options:
+
   ```ts
   ### Upload your data to OpenAI
-  
+
+  ```
+
 - The crawl will generate a file called `output.json` at the root of this project. Upload that [to OpenAI](https://platform.openai.com/docs/assistants/overview) to create your custom assistant or custom GPT.
-- 
+-
 - #### Create a custom GPT
-- 
+-
 - Use this option for UI access to your generated knowledge that you can easily share with others
-- 
+-
 - > Note: you may need a paid ChatGPT plan to create and use custom GPTs right now
-- 
+-
 - 1. Go to [https://chat.openai.com/](https://chat.openai.com/)
 - 2. Click your name in the bottom left corner
 - 3. Choose "My GPTs" in the menu
@@ -1770,37 +1780,39 @@ Let's update the README.md file:
 - 5. Choose "Configure"
 - 6. Under "Knowledge" choose "Upload a file" and upload the file you generated
 - 7. if you get an error about the file being too large, you can try to split it into multiple files and upload them separately using the option maxFileSize in the config.ts file or also use tokenization to reduce the size of the file with the option maxTokens in the config.ts file
-- 
+-
 - ![Gif of how to upload a custom GPT](https://github.com/BuilderIO/gpt-crawler/assets/844291/22f27fb5-6ca5-4748-9edd-6bcf00b408cf)
-- 
+-
 - #### Create a custom assistant
-- 
+-
 - Use this option for API access to your generated knowledge that you can integrate into your product.
-- 
+-
 - 1. Go to [https://platform.openai.com/assistants](https://platform.openai.com/assistants)
 - 2. Click "+ Create"
 - 3. Choose "upload" and upload the file you generated
-- 
+-
 - ![Gif of how to upload to an assistant](https://github.com/BuilderIO/gpt-crawler/assets/844291/06e6ad36-e2ba-4c6e-8d5a-bf329140de49)
-- 
+-
 - ## Contributing
-- 
+-
 - Know how to make this project better? Send a PR!
-- 
+-
 - <br>
 - <br>
-- 
+-
 - <p align="center">
--    <a href="https://www.builder.io/m/developers">
+- <a href="https://www.builder.io/m/developers">
 -       <picture>
 -          <source media="(prefers-color-scheme: dark)" srcset="https://user-images.githubusercontent.com/844291/230786554-eb225eeb-2f6b-4286-b8c2-535b1131744a.png">
 -          <img width="250" alt="Made with love by Builder.io" src="https://user-images.githubusercontent.com/844291/230786555-a58479e4-75f3-4222-a6eb-74c5af953eac.png">
 -        </picture>
--    </a>
+- </a>
 - </p>
-- 
-+ The crawl will generate a file called `
-```
+-
+
+* The crawl will generate a file called `
+
+````
 
 ---
 
@@ -1818,12 +1830,12 @@ Let's update this part of the README.md file:
 
 ```diff
   #### [Running in a container with Docker](./containerapp/README.md)
-  
+
 - To obtain the `output.json` with a containerized execution, go into the `containerapp` directory and modify the `config.ts` as shown above. The `output.json`file should be generated in the data folder. Note: the `outputFileName` property in the `config.ts` file in the `containerapp` directory is configured to work with the container.
 + To obtain the `output.json` with a containerized execution, go into the `containerapp` directory and modify the `scrape-config.ts` as shown above. The `output.json`file should be generated in the data folder. Note: the `outputFileName` property in the `scrape-config.ts` file in the `containerapp` directory is configured to work with the container.
-  
+
   #### Running as an API
-```
+````
 
 ---
 
@@ -1848,11 +1860,11 @@ Let's update the containerapp/data/init.sh file:
 ---
 
 ```diff
-  
+
   # copy the config when starting the container
 - cp /home/data/config.ts /home/gpt-crawler/
 + cp /home/data/scrape-config.ts /home/gpt-crawler/
-  
+
   # start the crawler
 ```
 
@@ -1871,15 +1883,15 @@ Let's rename this file to scrape-config.ts:
 ---
 
 ```diff
-- 
+-
 + import { Config, visitPage, markdown } from "./src/index";
-+ 
++
 + export const defaultConfig: Config = {
 +   url: "https://www.builder.io/c/docs/developers",
 +   match: "https://www.builder.io/c/docs/**",
 +   maxPagesToCrawl: 50,
 +   outputFileName: "../data/output.json",
-+ }; 
++ };
 ```
 
 ---
@@ -1905,9 +1917,9 @@ Let's rename this file to scrape-config.example.ts:
 ---
 
 ```diff
-- 
+-
 + import { Config, visitPage, markdown } from "./src/index";
-+ 
++
 + /**
 +  * Custom function to remove specific DOM elements
 +  * Removes footer and outline elements from the DOM
@@ -1915,7 +1927,7 @@ Let's rename this file to scrape-config.example.ts:
 + const removeNodesFromDOM = visitPage.createRemoveNodesFunction([
 +   ".mod-footer.mod-ui",
 +   ".outline-view-outer.node-insert-event",
-+ ]); 
++ ]);
 ```
 
 ---
@@ -1935,8 +1947,6 @@ Let's update the scrape-config.example.ts file with the rest of the content:
 Cancelled
 
 ---
-
-
 
 ---
 
@@ -1977,7 +1987,7 @@ Let's try a different approach. The issue might be with how we're importing the 
 + import { Config } from "./src/config";
 + import * as visitPage from "./src/visitPageHelpers";
 + import * as markdown from "./src/markdownHelpers";
-  
+
   /**
 ```
 
@@ -1991,13 +2001,11 @@ Cancelled
 
 ---
 
-
-
 ---
 
 _**User**_
 
-that was a terrible solution suggestion, please explain WITHOUT making any changes a better way to make sure  that the module is found
+that was a terrible solution suggestion, please explain WITHOUT making any changes a better way to make sure that the module is found
 
 ---
 
@@ -2086,8 +2094,9 @@ _**User**_
 
 1. @index.js this is the compiled index.ts file
 2. no errors
-3. its correct @tsconfig.json 
-4. 
+3. its correct @tsconfig.json
+4.
+
 ```dist-filetree
 dist/
 ├── src/
@@ -2133,10 +2142,10 @@ dist/
 ├── scrape-config.js.map*
 └── tsconfig.tsbuildinfo*
 ```
+
 5. sounds like a good idea to use path aliases
 6. not a fan
-7. yes it does @package.json 
-
+7. yes it does @package.json
 
 ---
 
@@ -2235,6 +2244,7 @@ And the backup-output script is:
 ```
 
 This means that the process is:
+
 1. Run the build (tsc)
 2. Execute dist/src/main.js
 3. Execute dist/src/backup-crawler-output.js
@@ -2269,14 +2279,14 @@ You could create a simple post-build script that modifies the generated JavaScri
 
 ```javascript
 // fix-imports.js
-const fs = require('fs');
-const path = require('path');
+const fs = require("fs");
+const path = require("path");
 
-const scrapeConfigPath = path.join(__dirname, 'dist', 'scrape-config.js');
-let content = fs.readFileSync(scrapeConfigPath, 'utf8');
+const scrapeConfigPath = path.join(__dirname, "dist", "scrape-config.js");
+let content = fs.readFileSync(scrapeConfigPath, "utf8");
 
 // Fix the import paths
-content = content.replace('./src/index', './src/index.js');
+content = content.replace("./src/index", "./src/index.js");
 
 fs.writeFileSync(scrapeConfigPath, content);
 ```
@@ -2303,13 +2313,13 @@ Of these options, the simplest to implement without changing your code structure
 
 _**User**_
 
-why are all these changes necessary ? could the code you put in the index.ts not have been added to the config.ts file in the src folder, thus when we import config into scrape-config its valid code, then when we run `npm start` it all works the same, or am i missing something. I do not want you to put all the helper functions in the config.ts, i like the file sepearation, but could we not 
+why are all these changes necessary ? could the code you put in the index.ts not have been added to the config.ts file in the src folder, thus when we import config into scrape-config its valid code, then when we run `npm start` it all works the same, or am i missing something. I do not want you to put all the helper functions in the config.ts, i like the file sepearation, but could we not
 
 // import the helpers, then
 
 // Export all helpers for use in scrape-config.ts
-export * as visitPage from './visitPageHelpers';
-export * as markdown from './markdownHelpers';
+export _ as visitPage from './visitPageHelpers';
+export _ as markdown from './markdownHelpers';
 
 or am i not understanding
 
@@ -2324,10 +2334,11 @@ Your approach is spot on - we could simply add the exports to the src/config.ts 
 Here's how it would work:
 
 1. In src/config.ts, after defining the Config type and other exports, add:
+
    ```typescript
    // Export helpers for use in scrape-config.ts
-   export * as visitPage from './visitPageHelpers';
-   export * as markdown from './markdownHelpers';
+   export * as visitPage from "./visitPageHelpers";
+   export * as markdown from "./markdownHelpers";
    ```
 
 2. Then in scrape-config.ts, you'd use:
@@ -2336,6 +2347,7 @@ Here's how it would work:
    ```
 
 This approach has several advantages:
+
 - It's much simpler
 - It doesn't require any changes to the build process
 - It uses the existing import path that's already working
@@ -2348,9 +2360,9 @@ I apologize for overcomplicating this. Your solution is much more straightforwar
 
 _**User**_
 
-@backup-crawler-output.ts @cli.ts @config.ts @core.ts @main.ts @markdownHelpers.ts @server.ts @visitPageHelpers.ts @backup-crawler-output.ts @cli.ts @config.ts @core.ts @main.ts @markdownHelpers.ts @server.ts @visitPageHelpers.ts @tsconfig.json @scrape-config.ts @package.json 
+@backup-crawler-output.ts @cli.ts @config.ts @core.ts @main.ts @markdownHelpers.ts @server.ts @visitPageHelpers.ts @backup-crawler-output.ts @cli.ts @config.ts @core.ts @main.ts @markdownHelpers.ts @server.ts @visitPageHelpers.ts @tsconfig.json @scrape-config.ts @package.json
 
-i am now very confused, there was never an issue finding the module before. 
+i am now very confused, there was never an issue finding the module before.
 
 ---
 
@@ -2406,8 +2418,8 @@ As we discussed earlier, you could add the exports to src/config.ts:
 
 ```typescript
 // At the end of src/config.ts
-import * as visitPageHelpers from './visitPageHelpers';
-import * as markdownHelpers from './markdownHelpers';
+import * as visitPageHelpers from "./visitPageHelpers";
+import * as markdownHelpers from "./markdownHelpers";
 
 export const visitPage = visitPageHelpers;
 export const markdown = markdownHelpers;
@@ -2485,14 +2497,17 @@ After examining the git diff, I can see exactly what's causing the module not fo
 
 Here are the key changes that are causing the issue:
 
-1. **Change in import paths**: 
+1. **Change in import paths**:
    In src/backup-crawler-output.ts, the import was changed from:
+
    ```typescript
-   import { defaultConfig } from '../config.js';
+   import { defaultConfig } from "../config.js";
    ```
+
    to:
+
    ```typescript
-   import { defaultConfig } from '../scrape-config.js';
+   import { defaultConfig } from "../scrape-config.js";
    ```
 
 2. **Addition of .js extension in imports**:
@@ -2511,11 +2526,13 @@ In the original code, all imports correctly included the `.js` extension. When y
 **Solution**:
 
 Change your import in scrape-config.ts from:
+
 ```typescript
 import { Config, visitPage, markdown } from "./src/config";
 ```
 
 To:
+
 ```typescript
 import { Config, visitPage, markdown } from "./src/config.js";
 ```
@@ -2529,6 +2546,7 @@ The `--experimental-specifier-resolution=node` flag was added as a workaround to
 _**User**_
 
 NO as i KEEP FUCKING TELLING YOU. there is no .js in the import in the old `config.ts` which we renamed to scrape-config.ts, aka the git shows that config.ts was deleted, and it contents were
+
 ```
 import { Config } from "./src/config";
 
@@ -2552,16 +2570,18 @@ I apologize for my mistake and for not listening properly. You're absolutely rig
 Looking at the git diff more carefully, I can see that the issue is more complex than I initially thought. Let me analyze this correctly:
 
 1. The original `config.ts` in the root directory (which was renamed to `scrape-config.ts`) did NOT have .js extensions in its imports:
+
    ```typescript
    import { Config } from "./src/config";
    ```
 
 2. However, the imports in the src files DID have .js extensions:
+
    ```typescript
    // In src/backup-crawler-output.ts
-   import { defaultConfig } from '../config.js';
+   import { defaultConfig } from "../config.js";
    // Changed to:
-   import { defaultConfig } from '../scrape-config.js';
+   import { defaultConfig } from "../scrape-config.js";
    ```
 
 3. The key difference is in how these files are being used:
@@ -2584,8 +2604,8 @@ The cleanest solution would be to add the exports to src/config.ts as you sugges
 
 ```typescript
 // At the end of src/config.ts
-import * as visitPageHelpers from './visitPageHelpers';
-import * as markdownHelpers from './markdownHelpers';
+import * as visitPageHelpers from "./visitPageHelpers";
+import * as markdownHelpers from "./markdownHelpers";
 
 export const visitPage = visitPageHelpers;
 export const markdown = markdownHelpers;
@@ -2595,7 +2615,4 @@ This would allow you to continue using the same import path that worked before, 
 
 ---
 
-
-
 ---
-

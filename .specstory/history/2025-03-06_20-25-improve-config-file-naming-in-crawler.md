@@ -4,7 +4,7 @@
 
 _**User**_
 
-@backup-crawler-output.ts @cli.ts @config.ts @core.ts @main.ts @server.ts When to code moves the resultant created document (json, markdown etc) to the 'crawled' folder, along with the config.ts file used to create it, the name its using for the config.ts when it copies it to the folder could be better, eg, it should be called the same name as the outputFileName, but with `_config.ts` added to the end of it, 
+@backup-crawler-output.ts @cli.ts @config.ts @core.ts @main.ts @server.ts When to code moves the resultant created document (json, markdown etc) to the 'crawled' folder, along with the config.ts file used to create it, the name its using for the config.ts when it copies it to the folder could be better, eg, it should be called the same name as the outputFileName, but with `_config.ts` added to the end of it,
 
 for example the current config.ts @config.ts has an outputFileName: "obsidian-reference-typescript.md" so the config.ts saved with it in the crawled folder should be `obsidian-reference-typescript.md_config.ts`. Please amend the code
 
@@ -59,7 +59,7 @@ Now I need to check if there are any other files that might be involved in the b
 
 ---
 
-Now I understand how the backup process works. The issue is in the `src/backup-crawler-output.ts` file where the config file is copied with a prefix based on the domain name and output format, but according to your request, it should be named based on the output file name with "_config.ts" appended.
+Now I understand how the backup process works. The issue is in the `src/backup-crawler-output.ts` file where the config file is copied with a prefix based on the domain name and output format, but according to your request, it should be named based on the output file name with "\_config.ts" appended.
 
 Let me modify the code:
 
@@ -67,7 +67,7 @@ Let me modify the code:
 
 ```diff
       }
-  
+
 -     // Copy the config file with domain name and output format prefix
 +     // Copy the config file with output filename as prefix
       const configDestPath = path.join(backupDir, configFile);
@@ -90,8 +90,6 @@ Cancelled
 
 ---
 
-
-
 ---
 
 _**User**_
@@ -102,12 +100,12 @@ it named it `obsidian-reference-typescript.md_config_config.ts` when the outputF
 
 _**Assistant**_
 
-I see the issue. The naming convention is adding an unnecessary "_config" before the file extension. Let me fix that by modifying the code to use just the output filename directly with "_config.ts" appended.
+I see the issue. The naming convention is adding an unnecessary "\_config" before the file extension. Let me fix that by modifying the code to use just the output filename directly with "\_config.ts" appended.
 
 ---
 
 ```diff
-  
+
       // Copy the config file with output filename as prefix
 -     const configDestPath = path.join(backupDir, configFile);
 -     const configPrefix = path.basename(defaultConfig.outputFileName);
@@ -119,7 +117,7 @@ I see the issue. The naming convention is adding an unnecessary "_config" before
 +     const configDestPath = path.join(backupDir, `${outputFileName}_config.ts`);
 +     const uniqueConfigPath = await getUniqueFilename(configDestPath);
       await fs.copyFile(configFile, uniqueConfigPath);
-  
+
 ```
 
 ---
@@ -132,11 +130,6 @@ Cancelled
 
 ---
 
-
-
 ---
 
-
-
 ---
-

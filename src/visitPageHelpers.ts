@@ -18,12 +18,17 @@ export const createRemoveNodesFunction = (selectorsToRemove: string[]) => {
     page,
     pushData: _pushData,
   }: OnVisitPageParams): Promise<void> => {
-    console.log('\x1b[91mvisitPageHelpers.ts:\x1b[0m  createRemoveNodesFunction executing');
-    console.log('\x1b[91mvisitPageHelpers.ts:\x1b[0m  selectors to remove:', selectorsToRemove);
-    
+    console.log(
+      "\x1b[91mvisitPageHelpers.ts:\x1b[0m  createRemoveNodesFunction executing",
+    );
+    console.log(
+      "\x1b[91mvisitPageHelpers.ts:\x1b[0m  selectors to remove:",
+      selectorsToRemove,
+    );
+
     const results = await page.evaluate((selectors: string[]) => {
       if (!selectors || !Array.isArray(selectors)) {
-        return { error: 'Selectors not found or not an array' };
+        return { error: "Selectors not found or not an array" };
       }
 
       interface SelectorResult {
@@ -33,17 +38,17 @@ export const createRemoveNodesFunction = (selectorsToRemove: string[]) => {
       }
 
       const selectorResults: SelectorResult[] = [];
-      
+
       selectors.forEach((selector) => {
         // Find all elements matching the selector
         const elements = document.querySelectorAll(selector);
-        
+
         selectorResults.push({
           selector,
           found: elements.length > 0,
-          count: elements.length
+          count: elements.length,
         });
-        
+
         // Remove each element from the DOM
         elements.forEach((element) => {
           if (element && element.parentNode) {
@@ -51,11 +56,14 @@ export const createRemoveNodesFunction = (selectorsToRemove: string[]) => {
           }
         });
       });
-      
+
       return { selectorResults };
     }, selectorsToRemove);
-    
-    console.log('\x1b[91mvisitPageHelpers.ts:\x1b[0m  Results from browser:', JSON.stringify(results, null, 2));
+
+    console.log(
+      "\x1b[91mvisitPageHelpers.ts:\x1b[0m  Results from browser:",
+      JSON.stringify(results, null, 2),
+    );
   };
 };
 
@@ -118,8 +126,8 @@ export const confirmOnVisitPage = async ({
   page,
   pushData: _pushData,
 }: OnVisitPageParams): Promise<void> => {
-  console.log('\x1b[91mvisitPageHelpers.ts:\x1b[0m  onVisitPage is working');
-  console.log('\x1b[91mvisitPageHelpers.ts:\x1b[0m  page.url(): ', page.url());
+  console.log("\x1b[91mvisitPageHelpers.ts:\x1b[0m  onVisitPage is working");
+  console.log("\x1b[91mvisitPageHelpers.ts:\x1b[0m  page.url(): ", page.url());
 };
 
 /**

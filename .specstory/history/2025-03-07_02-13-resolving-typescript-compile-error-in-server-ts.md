@@ -53,7 +53,7 @@ The issue is with the way swagger-ui-express is being used. The TypeScript error
   app.use(express.json());
 - app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 + app.use("/api-docs", swaggerUi.serve as any, swaggerUi.setup(swaggerDocument));
-  
+
   // Define a POST route to accept config and run the crawler
 ```
 
@@ -87,7 +87,7 @@ est<import("D:/projects/gpt-crawler/node_modules/@types/swagger-ui-express/node_
 ve-static-core/index").ParamsDictionary, any, any, qs.ParsedQs, Record<...>>' is not assignable to type 'i
 mport("D:/projects/gpt-crawler/node_modules/@types/swagger-ui-express/node_modules/@types/express-serve-st
 atic-core/index").Request<import("D:/projects/gpt-crawler/node_modules/@types/swagger-ui-express/node_modu
-les/@types/express-serve-static-core/index").ParamsDictionary, any, any, qs.ParsedQs, Record<...>>'.      
+les/@types/express-serve-static-core/index").ParamsDictionary, any, any, qs.ParsedQs, Record<...>>'.
             The types of 'app.get' are incompatible between these types.
               Type '((name: string) => any) & import("D:/projects/gpt-crawler/node_modules/@types/express-
 serve-static-core/index").IRouterMatcher<import("D:/projects/gpt-crawler/node_modules/@types/express-serve
@@ -95,7 +95,7 @@ serve-static-core/index").IRouterMatcher<import("D:/projects/gpt-crawler/node_mo
  any) & import("D:/projects/gpt-crawler/node_modules/@types/swagger-ui-express/node_modules/@types/express
 -serve-static-core/index").IRouterMatcher<import("D:/projects/gpt-crawler/node_modules/@types/swagger-ui-e
 xpress/node_modules/@types/express-serve-static-core/index").Application<Record<string,...'.
-                Type '((name: string) => any) & IRouterMatcher<Application<Record<string, any>>, any>' is 
+                Type '((name: string) => any) & IRouterMatcher<Application<Record<string, any>>, any>' is
 not assignable to type 'IRouterMatcher<Application<Record<string, any>>, any>'.
                   Types of parameters 'name' and 'path' are incompatible.
                     Type 'PathParams' is not assignable to type 'string'.
@@ -110,8 +110,8 @@ not assignable to type 'IRouterMatcher<Application<Record<string, any>>, any>'.
     154         P = ParamsDictionary,
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     ...
-    162         ...handlers: Array<RequestHandlerParams<P, ResBody, ReqBody, ReqQuery, LocalsObj>>        
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~        
+    162         ...handlers: Array<RequestHandlerParams<P, ResBody, ReqBody, ReqQuery, LocalsObj>>
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     163     ): T;
         ~~~~~~~~~
     The last overload is declared here.
@@ -137,7 +137,7 @@ It looks like we still have an issue. Let's try a different approach. We need to
   app.use(express.json());
 - app.use("/api-docs", swaggerUi.serve as any, swaggerUi.setup(swaggerDocument));
 + app.use("/api-docs", swaggerUi.serve as any[], swaggerUi.setup(swaggerDocument) as any);
-  
+
   // Define a POST route to accept config and run the crawler
 ```
 
@@ -162,12 +162,12 @@ https://github.com/chrisant996/clink
 
 Clink v1.7.11 is available.
 - To apply the update, run 'clink update'.
-- To stop checking for updates, run 'clink set clink.autoupdate off'.        
+- To stop checking for updates, run 'clink set clink.autoupdate off'.
 - To view the release notes, visit the Releases page:
   https://github.com/chrisant996/clink/releases
 
 
-gpt-crawler on  fck_claude [$✘!+?] is 📦 v1.4.0 via  v20.18.3 on ☁️  (us-east-2) 
+gpt-crawler on  fck_claude [$✘!+?] is 📦 v1.4.0 via  v20.18.3 on ☁️  (us-east-2)
 ❯ yarn tsc
 
 
@@ -208,10 +208,15 @@ This happens because of type mismatches between the Express types and the swagge
 We fixed the issue by using TypeScript's type assertion (`as any[]` and `as any`) to tell the TypeScript compiler to trust us that these values are compatible with what Express expects:
 
 ```typescript
-app.use("/api-docs", swaggerUi.serve as any[], swaggerUi.setup(swaggerDocument) as any);
+app.use(
+  "/api-docs",
+  swaggerUi.serve as any[],
+  swaggerUi.setup(swaggerDocument) as any,
+);
 ```
 
 This approach:
+
 1. Casts `swaggerUi.serve` to `any[]` (since it's an array of middleware functions)
 2. Casts `swaggerUi.setup(swaggerDocument)` to `any` (since it's a middleware function)
 
@@ -229,7 +234,4 @@ However, the solution we implemented is simple and effective for resolving the i
 
 ---
 
-
-
 ---
-

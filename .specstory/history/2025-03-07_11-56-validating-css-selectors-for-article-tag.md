@@ -7,19 +7,19 @@ _**User**_
 @backup-crawler-output.ts @config.ts @core.ts @cli.ts @main.ts @markdownHelpers.ts @server.ts @visitPageHelpers.ts @package.json @scrape-config.ts @tsconfig.json can you confirm that i could use the following selector combinations to access the below article tag
 
 ```
-<!-- 
+<!--
 You can use various selectors to target this element:
 
-1. Tag selector: 
+1. Tag selector:
    article
 
-2. Class selector: 
+2. Class selector:
    .markdown-section
 
-3. ID selector: 
+3. ID selector:
    #main
 
-4. Attribute selector: 
+4. Attribute selector:
    [class="markdown-section"]
    [id="main"]
 
@@ -119,6 +119,7 @@ Based on my analysis of the codebase, I can confirm that all the selector combin
 2. The crawler also supports XPath selectors (those starting with "/"), but all your examples are CSS selectors.
 
 3. Looking at your HTML example with the article tag, all of these selectors would be valid:
+
    - `article` (tag selector)
    - `.markdown-section` (class selector)
    - `#main` (ID selector)
@@ -144,7 +145,7 @@ In summary, yes, all the selector combinations you provided would work with this
 
 _**User**_
 
-please fix 
+please fix
 `However, I noticed a linter error in your scrape-config.ts file:
 This suggests that onProcessMarkdown is not defined in the Config type, which might need to be fixed if you want to use the markdown processor.`
 
@@ -322,12 +323,12 @@ Now I need to update the core.ts file to actually use the onProcessMarkdown func
 ```diff
           }
         }
-+ 
++
 +       // Apply onProcessMarkdown if provided
 +       if (config.onProcessMarkdown) {
 +         markdownContent = config.onProcessMarkdown(markdownContent);
 +       }
-  
+
         await writeFile(nextFileNameString, markdownContent);
 ```
 
@@ -336,6 +337,7 @@ Now I need to update the core.ts file to actually use the onProcessMarkdown func
 Great! I've made two important changes to fix the linter error:
 
 1. Added the `onProcessMarkdown` property to the `configSchema` in `src/config.ts`:
+
    ```typescript
    /** Optional function to process markdown content */
    onProcessMarkdown: z
@@ -354,6 +356,7 @@ Great! I've made two important changes to fix the linter error:
    ```
 
 These changes will:
+
 1. Fix the linter error in `scrape-config.ts` by properly defining the `onProcessMarkdown` property in the Config type
 2. Ensure that the `onProcessMarkdown` function is actually called when processing markdown content
 
@@ -363,7 +366,4 @@ The linter error should now be resolved, and your `onProcessMarkdown` function w
 
 ---
 
-
-
 ---
-
