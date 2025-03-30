@@ -25,11 +25,11 @@ export function getPageHtml(page: Page, selector = "body") {
         XPathResult.ANY_TYPE,
         null,
       );
-      let result = elements.iterateNext();
+      const result = elements.iterateNext();
       return result ? result.textContent || "" : "";
     } else {
       // Handle as a CSS selector
-      const el = document.querySelector(selector) as HTMLElement | null;
+      const el = document.querySelector(selector);
       return el?.innerText || "";
     }
   }, selector);

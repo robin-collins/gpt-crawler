@@ -1,7 +1,16 @@
 import fs from "fs/promises";
 import path from "path";
 import { fileURLToPath } from "url";
+import crypto from "crypto";
 import { defaultConfig } from "../scrape-config.js";
+
+// Helper function to calculate SHA-256 hash of a file
+async function calculateFileHash(filepath: string): Promise<string> {
+  const fileBuffer = await fs.readFile(filepath);
+  const hashSum = crypto.createHash("sha256");
+  hashSum.update(fileBuffer);
+  return hashSum.digest("hex");
+}
 
 async function backupCrawlerOutput() {
   try {
@@ -42,12 +51,30 @@ async function backupCrawlerOutput() {
       }
     }
 
-    // Copy the output file
+    // --- Output File Handling ---
     const outputDestPath = path.join(backupDir, outputFile);
     const uniqueOutputPath = await getUniqueFilename(outputDestPath);
     await fs.copyFile(outputFile, uniqueOutputPath);
 
-    // Copy the config file with domain name and output format prefix
+    // Verify output file hash
+    const sourceOutputHash = await calculateFileHash(outputFile);
+    const destOutputHash = await calculateFileHash(uniqueOutputPath);
+
+    if (sourceOutputHash !== destOutputHash) {
+      console.error(
+        `Error: Hash mismatch for output file. Source (${outputFile}) and destination (${uniqueOutputPath}) are different.`,
+      );
+      // Optionally delete the potentially corrupted destination file
+      // await fs.unlink(uniqueOutputPath);
+      process.exit(1);
+    }
+    console.log(`Output file hash verified: ${sourceOutputHash}`);
+
+    // Delete the original output file after successful verification
+    await fs.unlink(outputFile);
+    console.log(`Original output file deleted: ${outputFile}`);
+
+    // --- Config File Handling ---
     const configDestPath = path.join(backupDir, configFile);
     const uniqueConfigPath = await getUniqueFilename(
       configDestPath,
@@ -55,12 +82,27 @@ async function backupCrawlerOutput() {
     );
     await fs.copyFile(configFile, uniqueConfigPath);
 
-    console.log(`Backup completed successfully:`);
+    // Verify config file hash
+    const sourceConfigHash = await calculateFileHash(configFile);
+    const destConfigHash = await calculateFileHash(uniqueConfigPath);
+
+    if (sourceConfigHash !== destConfigHash) {
+      console.error(
+        `Error: Hash mismatch for config file. Source (${configFile}) and destination (${uniqueConfigPath}) are different.`,
+      );
+      // Optionally delete the potentially corrupted destination file
+      // await fs.unlink(uniqueConfigPath);
+      process.exit(1);
+    }
+    console.log(`Config file hash verified: ${sourceConfigHash}`);
+
+    console.log(`
+Backup completed successfully:`);
     console.log(
       `Directory: ${defaultConfig.topic ? "Topic: " + defaultConfig.topic : "Domain: " + domainName}`,
     );
-    console.log(`Output file: ${uniqueOutputPath}`);
-    console.log(`Config file: ${uniqueConfigPath}`);
+    console.log(`Backed up output file: ${uniqueOutputPath}`);
+    console.log(`Backed up config file: ${uniqueConfigPath}`);
   } catch (error) {
     console.error("Error during backup:", error);
     process.exit(1);

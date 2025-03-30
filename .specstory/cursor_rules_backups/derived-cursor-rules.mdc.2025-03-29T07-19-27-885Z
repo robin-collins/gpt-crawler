@@ -1,7 +1,3 @@
----
-description: Cursor rules derived by SpecStory from the project AI interaction history
-globs: *
----
 
 ---
 description: Cursor rules derived by SpecStory from the project AI interaction history
@@ -20,7 +16,7 @@ This project is a web crawler designed to extract information from various websi
 
 
 ## CODE STYLE
-Adhere to standard TypeScript coding conventions.  Maintain consistent indentation (2 spaces).  Use descriptive variable and function names.  ESLint is now configured for linting; run `npm run lint` to check for errors and `npm run lint:fix` to automatically fix them (added 2025-03-29).  Address all linting errors reported in `LINTERRORS.md` (added 2025-03-30).  Configure the `@typescript-eslint/no-unused-vars` rule to ignore variables prefixed with an underscore `_` or disable the rule for specific lines where unused variables are necessary due to type definitions (added 2025-03-30).
+Adhere to standard TypeScript coding conventions.  Maintain consistent indentation (2 spaces).  Use descriptive variable and function names.
 
 
 ## FOLDER ORGANIZATION
@@ -28,7 +24,6 @@ Adhere to standard TypeScript coding conventions.  Maintain consistent indentati
 - `src`: Contains the source code for the crawler.
 - `example_html`: Example HTML files for testing.
 - `dist`: Build output directory (added 2025-03-29)
-- `LINTERRORS.md`: Report on linting errors and resolutions (added 2025-03-30)
 
 
 ## TECH STACK
@@ -37,8 +32,6 @@ Adhere to standard TypeScript coding conventions.  Maintain consistent indentati
 - Git
 - crypto (added 2025-03-29)
 - rimraf (recommended for cross-platform compatibility, added 2025-03-29)
-- ESLint (added 2025-03-29)
-- Prettier (already included, leveraged by ESLint configuration, 2025-03-29)
 
 
 ## PROJECT-SPECIFIC STANDARDS
@@ -47,17 +40,13 @@ Adhere to standard TypeScript coding conventions.  Maintain consistent indentati
 - Valid CSS selectors (tag, class, ID, attribute, combined, descendant, pseudo-classes, pseudo-elements) are supported for targeting HTML elements.  Confirmed selector combinations for article tag validation (see 2025-03-07_22-26-validating-css-selectors-for-article-tag.md for details).
 - File copy and verification process updated (2025-03-29):  `src/backup-crawler-output.ts` now includes SHA-256 hash verification before deleting the source file.
 - Clean-up scripts added to `package.json` (2025-03-29): `clean:build` (deletes `dist` directory) and `clean:pkgs` (deletes `package-lock.json` and `node_modules` directory).  `rimraf` is the recommended tool for cross-platform compatibility.
-- Address all linting errors reported in `LINTERRORS.md` (added 2025-03-30).
-- Configure the `@typescript-eslint/no-unused-vars` rule to ignore variables prefixed with an underscore `_` or disable the rule for specific lines where unused variables are necessary due to type definitions (added 2025-03-30).
 
 
 ## WORKFLOW & RELEASE RULES
 - Use Git for version control.
 - Commit messages should be clear and concise.
 - Follow a standard release process (detailed in .releaserc).
-- Add clean:build and clean:pkgs scripts to package.json for cross-platform cleanup (2025-03-29).  Run `npm run clean:build` to remove the `dist` directory and `npm run clean:pkgs` to remove `node_modules` and `package-lock.json`.
-- Address all linting errors reported in `LINTERRORS.md` before committing (added 2025-03-30).
-- Configure the `@typescript-eslint/no-unused-vars` rule to ignore variables prefixed with an underscore `_` or disable the rule for specific lines where unused variables are necessary due to type definitions (added 2025-03-30).
+- Add clean:build and clean:pkgs scripts to package.json for cross-platform cleanup (2025-03-29).
 
 
 ## REFERENCE EXAMPLES
@@ -71,7 +60,6 @@ Adhere to standard TypeScript coding conventions.  Maintain consistent indentati
 - Confirmed selector combinations for article tag validation (see 2025-03-07_22-26-validating-css-selectors-for-article-tag.md for details).
 - The `Config` type in `src/config.ts` has been updated to include the `onProcessMarkdown` property to resolve a linter error.  The `core.ts` file has been updated to utilize the `onProcessMarkdown` function for markdown processing.
 - `src/backup-crawler-output.ts` updated to include SHA-256 hash verification and source file deletion (2025-03-29).
-- Linting error report and resolution steps added to `LINTERRORS.md` (added 2025-03-30).
 
 
 ## DEBUGGING
@@ -80,7 +68,6 @@ Adhere to standard TypeScript coding conventions.  Maintain consistent indentati
 - The order of operations in `core.ts` must ensure that `removeNodesFromDOM` is executed *before* content is captured for markdown output.  Currently, content capture precedes the execution of the removal function, resulting in unwanted content in the output.  This requires a re-ordering of function calls within `core.ts`.  The `onVisitPage` function should be used to modify the DOM *before* content capture to prevent unwanted elements in the final markdown.  Incorrect placement of `console.log` statements within `page.evaluate()` will result in missing debug output in the terminal.  Return structured data from `page.evaluate()` and log it after the call for effective debugging within that function.  Do not modify imports/exports to include or remove `.js` extensions. The TypeScript compiler handles this.
 - The `onVisitPage` function, as defined in `scrape-config.ts`, is now correctly executed *before* the content is captured for markdown conversion in `src/core.ts`.  This ensures DOM modifications are applied before content capture. The `onVisitPage` function call has been moved in `src/core.ts` to precede content capture (see 2025-03-07_14-08-execution-order-of-onvisitpage-function.md for details).
 - Address linter error in `scrape-config.ts` related to `onProcessMarkdown` not being defined in the Config type.  The `Config` type in `src/config.ts` has been updated to include the `onProcessMarkdown` property to resolve this linter error.
-- Refer to `LINTERRORS.md` for additional debugging guidance related to linting errors (added 2025-03-30).
 
 
 ## FINAL DOs AND DON'Ts
@@ -95,7 +82,3 @@ Adhere to standard TypeScript coding conventions.  Maintain consistent indentati
 - **DO** utilize a variety of valid CSS selectors (as confirmed in 2025-03-07_22-26-validating-css-selectors-for-article-tag.md) to efficiently target and extract the necessary HTML elements.
 - **DO** verify file integrity using SHA-256 hashing after file copying (added 2025-03-29).
 - **DO** use `rimraf` for cross-platform directory deletion (added 2025-03-29).
-- **DO** run `npm run clean:build` to remove the `dist` directory and `npm run clean:pkgs` to remove `node_modules` and `package-lock.json` (added 2025-03-29).
-- **DO** run `npm run lint` to check for linting errors and `npm run lint:fix` to automatically fix them (added 2025-03-29).
-- **DO** address all linting errors as detailed in `LINTERRORS.md` (added 2025-03-30).
-- **DO** Configure the `@typescript-eslint/no-unused-vars` rule to ignore variables prefixed with an underscore `_` or disable the rule for specific lines where unused variables are necessary due to type definitions (added 2025-03-30).
