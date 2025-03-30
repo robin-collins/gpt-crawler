@@ -8,77 +8,76 @@ _**User**_
 ❯ npm run lint:fix
 
 > @builder.io/gpt-crawler@1.4.0 lint:fix
-> eslint "src/**/*.ts" --fix
-
+> eslint "src/\*_/_.ts" --fix
 
 D:\projects\gpt-crawler\src\backup-crawler-output.ts
-    3:10  error  'fileURLToPath' is defined but never used                                                                                                    
-                       @typescript-eslint/no-unused-vars
-  112:1   error  Promises must be awaited, end with a call to .catch, end with a call to .then with a rejection handler or be explicitly marked as ignored with the `void` operator  @typescript-eslint/no-floating-promises
+3:10 error 'fileURLToPath' is defined but never used  
+ @typescript-eslint/no-unused-vars
+112:1 error Promises must be awaited, end with a call to .catch, end with a call to .then with a rejection handler or be explicitly marked as ignored with the `void` operator @typescript-eslint/no-floating-promises
 
 D:\projects\gpt-crawler\src\cli.ts
-   10:7   error  Unsafe assignment of an `any` value                                                                                  @typescript-eslint/no-unsafe-assignment
-   33:5   error  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
-   87:13  error  Unsafe assignment of an `any` value                                                                                  @typescript-eslint/no-unsafe-assignment
-   89:7   error  Unsafe assignment of an `any` value                                                                                  @typescript-eslint/no-unsafe-assignment
-  102:17  error  Unsafe argument of type `any` assigned to a parameter of type `string`                                               @typescript-eslint/no-unsafe-argument
-  102:38  error  Unsafe argument of type `any` assigned to a parameter of type `string`                                               @typescript-eslint/no-unsafe-argument
+10:7 error Unsafe assignment of an `any` value @typescript-eslint/no-unsafe-assignment
+33:5 error Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free @typescript-eslint/ban-ts-comment
+87:13 error Unsafe assignment of an `any` value @typescript-eslint/no-unsafe-assignment
+89:7 error Unsafe assignment of an `any` value @typescript-eslint/no-unsafe-assignment
+102:17 error Unsafe argument of type `any` assigned to a parameter of type `string` @typescript-eslint/no-unsafe-argument
+102:38 error Unsafe argument of type `any` assigned to a parameter of type `string` @typescript-eslint/no-unsafe-argument
 
 D:\projects\gpt-crawler\src\core.ts
-   33:7   error  Unsafe return of a value of type error                        
-                                                             @typescript-eslint/no-unsafe-return
-   87:48  error  Unexpected any. Specify a different type                      
-                                                             @typescript-eslint/no-explicit-any
-   88:28  error  Unsafe argument of type `any` assigned to a parameter of type `ReadonlyDeep<Dictionary | Dictionary[]>`                    @typescript-eslint/no-unsafe-argument
-  210:24  error  Unexpected any. Specify a different type                      
-                                                             @typescript-eslint/no-explicit-any
-  294:24  error  Unsafe argument of type `any` assigned to a parameter of type `string`                                                     @typescript-eslint/no-unsafe-argument
-  296:31  error  Unsafe assignment of an `any` value                           
-                                                             @typescript-eslint/no-unsafe-assignment
-  317:25  error  Unsafe argument of type `any` assigned to a parameter of type `string | Buffer<ArrayBufferLike> | BinaryData | undefined`  @typescript-eslint/no-unsafe-argument
-  322:11  error  Unsafe assignment of an `any` value                           
-                                                             @typescript-eslint/no-unsafe-assignment
-  322:26  error  Unsafe member access .length on an `any` value                
-                                                             @typescript-eslint/no-unsafe-member-access
-  323:26  error  Unsafe argument of type `any` assigned to a parameter of type `string`                                                     @typescript-eslint/no-unsafe-argument
-  325:23  error  Unsafe assignment of an `any` value                           
-                                                             @typescript-eslint/no-unsafe-assignment
-  325:30  error  Unsafe assignment of an `any` value                           
-                                                             @typescript-eslint/no-unsafe-assignment
-  365:38  error  Unexpected any. Specify a different type                      
-                                                             @typescript-eslint/no-explicit-any
-  395:53  error  Unsafe return of a value of type `any`                        
-                                                             @typescript-eslint/no-unsafe-return
-  404:11  error  Unsafe argument of type `any[]` assigned to a parameter of type `string[]`                                                 @typescript-eslint/no-unsafe-argument
-  450:26  error  Unexpected any. Specify a different type                      
-                                                             @typescript-eslint/no-explicit-any
-  482:11  error  Unsafe assignment of an `any` value                           
-                                                             @typescript-eslint/no-unsafe-assignment
-  482:32  error  Unexpected any. Specify a different type                      
-                                                             @typescript-eslint/no-explicit-any
+33:7 error Unsafe return of a value of type error  
+ @typescript-eslint/no-unsafe-return
+87:48 error Unexpected any. Specify a different type  
+ @typescript-eslint/no-explicit-any
+88:28 error Unsafe argument of type `any` assigned to a parameter of type `ReadonlyDeep<Dictionary | Dictionary[]>` @typescript-eslint/no-unsafe-argument
+210:24 error Unexpected any. Specify a different type  
+ @typescript-eslint/no-explicit-any
+294:24 error Unsafe argument of type `any` assigned to a parameter of type `string` @typescript-eslint/no-unsafe-argument
+296:31 error Unsafe assignment of an `any` value  
+ @typescript-eslint/no-unsafe-assignment
+317:25 error Unsafe argument of type `any` assigned to a parameter of type `string | Buffer<ArrayBufferLike> | BinaryData | undefined` @typescript-eslint/no-unsafe-argument
+322:11 error Unsafe assignment of an `any` value  
+ @typescript-eslint/no-unsafe-assignment
+322:26 error Unsafe member access .length on an `any` value  
+ @typescript-eslint/no-unsafe-member-access
+323:26 error Unsafe argument of type `any` assigned to a parameter of type `string` @typescript-eslint/no-unsafe-argument
+325:23 error Unsafe assignment of an `any` value  
+ @typescript-eslint/no-unsafe-assignment
+325:30 error Unsafe assignment of an `any` value  
+ @typescript-eslint/no-unsafe-assignment
+365:38 error Unexpected any. Specify a different type  
+ @typescript-eslint/no-explicit-any
+395:53 error Unsafe return of a value of type `any`  
+ @typescript-eslint/no-unsafe-return
+404:11 error Unsafe argument of type `any[]` assigned to a parameter of type `string[]` @typescript-eslint/no-unsafe-argument
+450:26 error Unexpected any. Specify a different type  
+ @typescript-eslint/no-explicit-any
+482:11 error Unsafe assignment of an `any` value  
+ @typescript-eslint/no-unsafe-assignment
+482:32 error Unexpected any. Specify a different type  
+ @typescript-eslint/no-explicit-any
 
 D:\projects\gpt-crawler\src\server.ts
-   7:1   error  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free                @typescript-eslint/ban-ts-comment
-  22:22  error  Unexpected any. Specify a different type                       
-                                                                    @typescript-eslint/no-explicit-any
-  23:3   error  Unsafe argument of type `any` assigned to a parameter of type `RequestHandlerParams<{}, any, any, ParsedQs, Record<string, any>>`  @typescript-eslint/no-unsafe-argument
-  23:19  error  Unsafe argument of type error typed assigned to a parameter of type `JsonObject | null | undefined`                                @typescript-eslint/no-unsafe-argument
-  23:39  error  Unexpected any. Specify a different type                       
-                                                                    @typescript-eslint/no-explicit-any
-  27:20  error  Promise returned in function argument where a void return was expected                                                             @typescript-eslint/no-misused-promises
-  28:9   error  Unsafe assignment of an `any` value                            
-                                                                    @typescript-eslint/no-unsafe-assignment
+7:1 error Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free @typescript-eslint/ban-ts-comment
+22:22 error Unexpected any. Specify a different type  
+ @typescript-eslint/no-explicit-any
+23:3 error Unsafe argument of type `any` assigned to a parameter of type `RequestHandlerParams<{}, any, any, ParsedQs, Record<string, any>>` @typescript-eslint/no-unsafe-argument
+23:19 error Unsafe argument of type error typed assigned to a parameter of type `JsonObject | null | undefined` @typescript-eslint/no-unsafe-argument
+23:39 error Unexpected any. Specify a different type  
+ @typescript-eslint/no-explicit-any
+27:20 error Promise returned in function argument where a void return was expected @typescript-eslint/no-misused-promises
+28:9 error Unsafe assignment of an `any` value  
+ @typescript-eslint/no-unsafe-assignment
 
 D:\projects\gpt-crawler\src\visitPageHelpers.ts
-    8:20  error  Unexpected any. Specify a different type                      
-       @typescript-eslint/no-explicit-any
-   19:15  error  '_pushData' is defined but never used                         
-       @typescript-eslint/no-unused-vars
-   76:13  error  '_pushData' is defined but never used                         
-       @typescript-eslint/no-unused-vars
-  127:13  error  '_pushData' is defined but never used                         
-       @typescript-eslint/no-unused-vars
-  128:38  error  Async arrow function 'confirmOnVisitPage' has no 'await' expression  @typescript-eslint/require-await
+8:20 error Unexpected any. Specify a different type  
+ @typescript-eslint/no-explicit-any
+19:15 error '\_pushData' is defined but never used  
+ @typescript-eslint/no-unused-vars
+76:13 error '\_pushData' is defined but never used  
+ @typescript-eslint/no-unused-vars
+127:13 error '\_pushData' is defined but never used  
+ @typescript-eslint/no-unused-vars
+128:38 error Async arrow function 'confirmOnVisitPage' has no 'await' expression @typescript-eslint/require-await
 
 ✖ 38 problems (38 errors, 0 warnings)
 
@@ -87,6 +86,7 @@ D:\projects\gpt-crawler\src\visitPageHelpers.ts
 Write me a report on the above linting errors.
 
 1. **Issue Analysis**:
+
    - Identify the type of linting error (unused code, type issue, etc.)
    - Analyze the relevant code and attempt to explain the intended functionality and how it falls short.
    - Explain how this issue impacts the codebase
@@ -105,7 +105,7 @@ _**Assistant**_
 
 Okay, I will analyze the linting errors you provided and generate a report in markdown format. This report will detail the issues found in each file, explain their potential impact, and propose specific resolutions. I will create the report in a new file named `LINTERRORS.md`.
 
-```markdown:LINTERRORS.md
+````markdown:LINTERRORS.md
 # Linting Error Report (2025-03-30)
 
 This report details the ESLint errors found during the linting process (`npm run lint:fix`) and provides analysis and resolution steps for each issue.
@@ -525,3 +525,4 @@ This report details the ESLint errors found during the linting process (`npm run
 
 ---
 
+````

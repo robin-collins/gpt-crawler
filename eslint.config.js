@@ -1,20 +1,20 @@
 // eslint.config.js
 import globals from "globals";
 import tseslint from "typescript-eslint";
-import pluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
+import pluginPrettierRecommended from "eslint-plugin-prettier/recommended";
 
 export default tseslint.config(
   // Global ignores - apply before any other configurations
   {
     ignores: [
-        "dist/",
-        "node_modules/",
-        "coverage/", // Often excluded
-        "example_html/", // Project specific
-        "crawled/", // Project specific
-        "*.js", // Ignore root JS files by default (like swagger.js)
-        "*.mjs",
-        "**/*.d.ts", // Ignore declaration files
+      "dist/",
+      "node_modules/",
+      "coverage/", // Often excluded
+      "example_html/", // Project specific
+      "crawled/", // Project specific
+      "*.js", // Ignore root JS files by default (like swagger.js)
+      "*.mjs",
+      "**/*.d.ts", // Ignore declaration files
     ],
   },
 
@@ -32,7 +32,7 @@ export default tseslint.config(
       },
       globals: {
         ...globals.node, // Add Node.js specific globals
-      }
+      },
     },
     // You can add specific rule overrides for your TS code here
     // rules: {
