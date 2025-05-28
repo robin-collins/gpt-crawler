@@ -29,7 +29,7 @@ export function getPageHtml(page: Page, selector = "body") {
       return result ? result.textContent || "" : "";
     } else {
       // Handle as a CSS selector
-      const el = document.querySelector(selector);
+      const el = document.querySelector(selector) as HTMLElement | null;
       return el?.innerText || "";
     }
   }, selector);
@@ -237,13 +237,18 @@ function convertToMarkdown(
     replacement: function (content, node) {
       const element = node as HTMLElement;
       const href = element.getAttribute("href");
+
+      // Clean the content for use as link text: remove leading markdown and collapse whitespace
+      const linkText = content.replace(/^#+\s*/, '').replace(/\s+/g, ' ').trim();
+
       if (href && allUrls.includes(href)) {
+        // Use the original, uncleaned content for slugification
         const localSlug = slugify(content);
         return includeExtras
-          ? `[${content}](#${localSlug})`
-          : `[${content}](${href})`;
+          ? `[${linkText}](#${localSlug})`
+          : `[${linkText}](${href})`;
       }
-      return `[${content}](${href})`;
+      return `[${linkText}](${href})`;
     },
   });
 
@@ -300,10 +305,6 @@ function convertToMarkdown(
     markdown += `[Back to Top](#table-of-contents)\n\n`;
   }
   markdown += `URL: ${data.url}\n\n`;
-
-  if (data.excerpt) {
-    markdown += `${data.excerpt}\n\n`;
-  }
 
   if (data.byline) {
     markdown += `Author: ${data.byline}\n\n`;

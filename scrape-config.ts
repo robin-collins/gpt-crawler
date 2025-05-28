@@ -9,26 +9,25 @@ const { visitPage, markdown } = ConfigModule;
  */
 
 const removeNodesFromDOM = visitPage.createRemoveNodesFunction([
-  ".site-body-right-column",
-  ".mod-footer.mod-ui",
+  "iframe",
 ]);
 
 const combinedOnVisitPage = visitPage.chainVisitFunctions(
-  visitPage.confirmOnVisitPage,
-  visitPage.cleanCodeBlocks,
-);
+  visitPage.cleanNextraCodeBlocks,
+  visitPage.createRemoveNodesFunction(["iframe",]),
+  );
 
 export const defaultConfig: Config = {
-  url: "http://localhost:3000",
-  match: ["http://localhost:3000/**/**"],
+  url: "https://docs.hyperdiv.io/guide/getting-started",
+  match: ["https://docs.hyperdiv.io/guide/getting-started"],
   exclude: [],
-  maxPagesToCrawl: 1000,
-  topic: "obsidian",
-  selector: "#content",
-  outputFileName: "Templater-plugin.md",
-  outputFileFormat: "markdown",
+  maxPagesToCrawl: 1,
+  topic: "hyperdiv",
+  selector: "//*[@id=\"a9dd805ed\"]",
+  outputFileName: "hyperdiv.md",
+  outputFileFormat: "markdown"
   // onVisitPage: combinedOnVisitPage,
-  // onProcessMarkdown: markdown.addLanguageToCodeBlocks,
+  // onProcessMarkdown: (md) => ConfigModule.markdown.addLanguageToCodeBlocks(md, "typescript"),
 };
 
 /*

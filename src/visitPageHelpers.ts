@@ -120,6 +120,73 @@ export const cleanCodeBlocks = async ({
 };
 
 /**
+ * Function to clean Nextra-specific code blocks by extracting text from spans.
+ * @param params - The onVisitPage parameters
+ */
+export const cleanNextraCodeBlocks = async ({
+  page,
+  pushData: _pushData,
+}: OnVisitPageParams): Promise<void> => {
+  // We are injecting the logic from the validated test script here.
+  // Note: console.log calls inside evaluate will go to the browser's console,
+  //       not the Node.js console unless explicitly forwarded (like in the test script).
+  const results = await page.evaluate(() => {
+    // Select <pre> elements using the class identified in reactflow examples
+    const codeBlocks = document.querySelectorAll("pre.not-prose");
+    let processedCount = 0;
+    let replacedCount = 0;
+
+    codeBlocks.forEach((codeBlock) => {
+      if (!(codeBlock instanceof HTMLElement)) return;
+
+      // Find the specific <code class="nextra-code"> element inside the <pre>
+      const codeElement = codeBlock.querySelector("code.nextra-code");
+      if (!codeElement) {
+          return; // Skip pre blocks that don't contain the target code element
+      }
+
+      processedCount++; // Increment count for blocks containing the target code element
+
+      // Get all direct child spans within the code element
+      const lineSpans = codeElement.querySelectorAll<HTMLElement>(":scope > span");
+      let extractedCodeText = "";
+
+      lineSpans.forEach((lineSpan) => {
+        const lineText = lineSpan.textContent || "";
+        extractedCodeText += lineText + "\n";
+      });
+
+      const cleanedText = extractedCodeText.trim();
+
+      const newPre = document.createElement("pre");
+      const newCode = document.createElement("code");
+
+      const langClass = Array.from(codeElement.classList).find(cls => cls.startsWith('language-')) || 'language-typescript'; // Default to typescript
+      newCode.className = langClass;
+      newCode.textContent = cleanedText;
+      newPre.appendChild(newCode);
+
+      if (codeBlock.parentNode) {
+          codeBlock.parentNode.replaceChild(newPre, codeBlock);
+          replacedCount++; // Increment count for successfully replaced blocks
+      }
+    });
+
+    // Return summary data
+    return {
+        totalFound: codeBlocks.length,
+        processed: processedCount,
+        replaced: replacedCount
+    };
+  });
+
+  // Log the results in the Node.js console
+  console.log(
+    `\x1b[96m[cleanNextraCodeBlocks][0m Found: ${results.totalFound}, Processed: ${results.processed}, Replaced: ${results.replaced} Nextra code blocks.`
+  );
+};
+
+/**
  * function to confirm that onVisitPage is working and returl the page.url
  */
 export const confirmOnVisitPage = async ({

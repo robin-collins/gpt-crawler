@@ -3,9 +3,42 @@
  * @param markdown - The markdown content to process
  * @returns The processed markdown with language identifiers added to code blocks
  */
-export function addLanguageToCodeBlocks(markdown: string): string {
-  // Replace code blocks that don't have a language specified
-  return markdown.replace(/```\n/g, "```text\n");
+export function addLanguageToCodeBlocks(
+  markdown: string,
+  language = "text"
+): string {
+  const lines = markdown.split('\n');
+  const processedLines: string[] = [];
+  let inCodeBlock = false;
+  const fenceRegex = /^\s*```(.*)/; // Matches ``` and captures anything after
+
+  for (const line of lines) {
+    const match = line.match(fenceRegex);
+
+    if (match) {
+      if (!inCodeBlock) {
+        // Entering a code block
+        const existingLang = match[1].trim();
+        if (!existingLang) {
+          // No language specified, add the default/provided one
+          processedLines.push(`\`\`\`${language}`);
+        } else {
+          // Language already exists, keep the line as is
+          processedLines.push(line);
+        }
+        inCodeBlock = true;
+      } else {
+        // Exiting a code block, keep the closing fence as is
+        processedLines.push(line);
+        inCodeBlock = false;
+      }
+    } else {
+      // Not a fence line, add it as is (respecting if inside a code block or not)
+      processedLines.push(line);
+    }
+  }
+
+  return processedLines.join('\n');
 }
 
 /**

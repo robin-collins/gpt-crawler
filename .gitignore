@@ -18,3 +18,4 @@ storage
 pnpm-lock.yaml
 crawled/
 example_html/
+reporting/

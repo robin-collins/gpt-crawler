@@ -1,6 +1,14 @@
+
 ---
 description: Cursor rules derived by SpecStory from the project AI interaction history
 globs: *
+alwaysApply: false
+---
+
+---
+description: Cursor rules derived by SpecStory from the project AI interaction history
+globs: *
+alwaysApply: true
 ---
 
 ## PROJECT OVERVIEW
@@ -8,7 +16,7 @@ This project is a web crawler designed to extract information from various websi
 
 
 ## CODE STYLE
-Adhere to standard TypeScript coding conventions.  Maintain consistent indentation (2 spaces).  Use descriptive variable and function names.  ESLint is now configured for linting; run `npm run lint` to check for errors and `npm run lint:fix` to automatically fix them (added 2025-03-29).  Address all linting errors reported in `LINTERRORS.md` (added 2025-03-30).  Configure the `@typescript-eslint/no-unused-vars` rule to ignore variables prefixed with an underscore `_` or disable the rule for specific lines where unused variables are necessary due to type definitions (added 2025-03-30).  When using `document.querySelector`, ensure the returned `Element` is cast to `HTMLElement` to access `innerText` property reliably (added 2025-04-03). Avoid generating markdown links with newline characters between the link text and the link reference.  The `convertToMarkdown` function in `src/core.ts` has been updated to prevent newline characters from appearing in markdown links (added 2025-04-03). The `addLanguageToCodeBlocks` function in `src/markdownHelpers.ts` has been updated to reliably add language specifiers to markdown code blocks (added 2025-04-17).
+Adhere to standard TypeScript coding conventions.  Maintain consistent indentation (2 spaces).  Use descriptive variable and function names.  ESLint is now configured for linting; run `npm run lint` to check for errors and `npm run lint:fix` to automatically fix them (added 2025-03-29).  Address all linting errors reported in `LINTERRORS.md` (added 2025-03-30).  Configure the `@typescript-eslint/no-unused-vars` rule to ignore variables prefixed with an underscore `_` or disable the rule for specific lines where unused variables are necessary due to type definitions (added 2025-03-30).  When using `document.querySelector`, ensure the returned `Element` is cast to `HTMLElement` to access `innerText` property reliably (added 2025-04-03).  Avoid generating markdown links with newline characters between the link text and the link reference.
 
 
 ## FOLDER ORGANIZATION
@@ -38,8 +46,6 @@ Adhere to standard TypeScript coding conventions.  Maintain consistent indentati
 - Address all linting errors reported in `LINTERRORS.md` (added 2025-03-30).
 - Configure the `@typescript-eslint/no-unused-vars` rule to ignore variables prefixed with an underscore `_` or disable the rule for specific lines where unused variables are necessary due to type definitions (added 2025-03-30).
 - When using `document.querySelector`, ensure the returned `Element` is cast to `HTMLElement` to access `innerText` property reliably (added 2025-04-03).
-- The `convertToMarkdown` function in `src/core.ts` has been updated to prevent newline characters from appearing in markdown links (added 2025-04-03).
-- The `addLanguageToCodeBlocks` function in `src/markdownHelpers.ts` has been updated to reliably add language specifiers to markdown code blocks (added 2025-04-17).
 
 
 ## WORKFLOW & RELEASE RULES
@@ -50,8 +56,7 @@ Adhere to standard TypeScript coding conventions.  Maintain consistent indentati
 - Address all linting errors reported in `LINTERRORS.md` before committing (added 2025-03-30).
 - Configure the `@typescript-eslint/no-unused-vars` rule to ignore variables prefixed with an underscore `_` or disable the rule for specific lines where unused variables are necessary due to type definitions (added 2025-03-30).
 - When using `document.querySelector`, ensure the returned `Element` is cast to `HTMLElement` to access `innerText` property reliably (added 2025-04-03).
-- Avoid generating markdown links with newline characters between the link text and the link reference.  The `convertToMarkdown` function in `src/core.ts` has been updated to prevent newline characters from appearing in markdown links (added 2025-04-03).
-- The `addLanguageToCodeBlocks` function in `src/markdownHelpers.ts` has been updated to reliably add language specifiers to markdown code blocks (added 2025-04-17).
+- Avoid generating markdown links with newline characters between the link text and the link reference.
 
 
 ## REFERENCE EXAMPLES
@@ -67,8 +72,6 @@ Adhere to standard TypeScript coding conventions.  Maintain consistent indentati
 - `src/backup-crawler-output.ts` updated to include SHA-256 hash verification and source file deletion (2025-03-29).
 - Linting error report and resolution steps added to `LINTERRORS.md` (added 2025-03-30).
 - Add explicit `HTMLElement` type casting when accessing `innerText` from `document.querySelector` results (added 2025-04-03).
-- The `convertToMarkdown` function in `src/core.ts` has been updated to prevent newline characters from appearing in markdown links (added 2025-04-03).
-- The `addLanguageToCodeBlocks` function in `src/markdownHelpers.ts` has been updated to reliably add language specifiers to markdown code blocks (added 2025-04-17).
 
 
 ## DEBUGGING
@@ -79,7 +82,6 @@ Adhere to standard TypeScript coding conventions.  Maintain consistent indentati
 - Address linter error in `scrape-config.ts` related to `onProcessMarkdown` not being defined in the Config type.  The `Config` type in `src/config.ts` has been updated to include the `onProcessMarkdown` property to resolve this linter error.
 - Refer to `LINTERRORS.md` for additional debugging guidance related to linting errors (added 2025-03-30).
 - Cast the result of `document.querySelector` to `HTMLElement` before accessing `innerText` to avoid TypeScript errors (added 2025-04-03).
-- The `cleanNextraCodeBlocks` function in `src/visitPageHelpers.ts` now provides console output indicating the number of code blocks found, processed, and replaced (added 2025-04-18).
 
 
 ## FINAL DOs AND DON'Ts
@@ -99,5 +101,4 @@ Adhere to standard TypeScript coding conventions.  Maintain consistent indentati
 - **DO** address all linting errors as detailed in `LINTERRORS.md` (added 2025-03-30).
 - **DO** Configure the `@typescript-eslint/no-unused-vars` rule to ignore variables prefixed with an underscore `_` or disable the rule for specific lines where unused variables are necessary due to type definitions (added 2025-03-30).
 - **DO** Cast the result of `document.querySelector` to `HTMLElement` before accessing `innerText` to avoid TypeScript errors (added 2025-04-03).
-- **DO NOT** introduce newline characters between the link text and the link reference in markdown links.  The `convertToMarkdown` function in `src/core.ts` has been updated to prevent newline characters from appearing in markdown links (added 2025-04-03).
-- **DO** use the `addLanguageToCodeBlocks` function to consistently add language specifiers to markdown code blocks (added 2025-04-17).  The function now handles various edge cases and uses a more robust parsing method.
+- **DO NOT** introduce newline characters between the link text and the link reference in markdown links.
