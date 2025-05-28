@@ -239,7 +239,10 @@ function convertToMarkdown(
       const href = element.getAttribute("href");
 
       // Clean the content for use as link text: remove leading markdown and collapse whitespace
-      const linkText = content.replace(/^#+\s*/, '').replace(/\s+/g, ' ').trim();
+      const linkText = content
+        .replace(/^#+\s*/, "")
+        .replace(/\s+/g, " ")
+        .trim();
 
       if (href && allUrls.includes(href)) {
         // Use the original, uncleaned content for slugification

@@ -12,41 +12,37 @@ I would also like it to import the @visitPageHelpers.ts and be able to call the 
 
 _**Assistant**_
 
-
-
 ---
 
 Okay, I can create that script for you. It will load a specified URL, save the initial HTML, run the `cleanNextraCodeBlocks` function, and then save the modified HTML.
 
 I'll create a new file named `src/test-url-cleaning.ts` with the requested logic.
 
-
-
 ---
 
 ```diff
-- 
+-
 + import { chromium, Page } from 'playwright';
 + import path from 'path';
 + import fs from 'fs/promises'; // Use promises for async operations
 + import { cleanNextraCodeBlocks, OnVisitPageParams } from './visitPageHelpers.js'; // Assuming ESM, use .js extension if needed by your config
-+ 
++
 + // --- Configuration ---
 + // ! SET THE URL TO TEST HERE !
 + const URL_TO_TEST = 'https://reactflow.dev/learn/concepts/terms-and-definitions';
 + const INITIAL_HTML_OUTPUT_PATH = path.resolve('example_html', 'initial_page_content.html');
 + const CLEANED_HTML_OUTPUT_PATH = path.resolve('example_html', 'cleaned_page_content.html');
 + // ---------------------
-+ 
-+ 
++
++
 + // Dummy pushData function as required by OnVisitPageParams type, though cleanNextraCodeBlocks doesn't use it
 + const dummyPushData = async (data: any) => {
 +   console.log('[DummyPushData] Received data (not used):', typeof data);
 +   // In a real scenario, this might send data somewhere
 +   await Promise.resolve(); // Simulate async operation
 + };
-+ 
-+ 
++
++
 + // --- Main execution logic ---
 + (async () => {
 +   let browser;
@@ -54,35 +50,35 @@ I'll create a new file named `src/test-url-cleaning.ts` with the requested logic
 +     console.log(`Launching browser and navigating to: ${URL_TO_TEST}`);
 +     browser = await chromium.launch();
 +     const page = await browser.newPage();
-+ 
++
 +     // Forward browser console logs to Node console for debugging cleanNextraCodeBlocks
 +     page.on('console', msg => console.log(`BROWSER LOG: ${msg.text()}`));
-+ 
++
 +     await page.goto(URL_TO_TEST, { waitUntil: 'domcontentloaded' });
 +     console.log('Page navigation successful.');
-+ 
++
 +     // --- Save Initial HTML ---
 +     console.log(`Saving initial HTML content to: ${INITIAL_HTML_OUTPUT_PATH}`);
 +     const initialContent = await page.content();
 +     await fs.writeFile(INITIAL_HTML_OUTPUT_PATH, initialContent, 'utf-8');
 +     console.log('Initial HTML saved.');
-+ 
++
 +     // --- Run Cleaning Function ---
 +     console.log('Running cleanNextraCodeBlocks function...');
 +     const params: OnVisitPageParams = { page, pushData: dummyPushData };
 +     await cleanNextraCodeBlocks(params);
 +     console.log('cleanNextraCodeBlocks function finished.');
-+ 
++
 +     // --- Save Cleaned HTML ---
 +     console.log(`Saving cleaned HTML content to: ${CLEANED_HTML_OUTPUT_PATH}`);
 +     const cleanedContent = await page.content(); // Get content *after* cleaning
 +     await fs.writeFile(CLEANED_HTML_OUTPUT_PATH, cleanedContent, 'utf-8');
 +     console.log('Cleaned HTML saved.');
-+ 
++
 +     console.log('Script finished successfully.');
 +     console.log(`Initial HTML saved to: ${INITIAL_HTML_OUTPUT_PATH}`);
 +     console.log(`Cleaned HTML saved to: ${CLEANED_HTML_OUTPUT_PATH}`);
-+ 
++
 +   } catch (error) {
 +     console.error('--- ERROR DURING EXECUTION ---');
 +     console.error(error);
@@ -93,7 +89,7 @@ I'll create a new file named `src/test-url-cleaning.ts` with the requested logic
 +       console.log('Browser closed.');
 +     }
 +   }
-+ })(); 
++ })();
 ```
 
 ---
@@ -101,6 +97,7 @@ I'll create a new file named `src/test-url-cleaning.ts` with the requested logic
 Created the file `src/test-url-cleaning.ts`.
 
 Remember to:
+
 1.  **Set the `URL_TO_TEST` constant** within the script to the actual URL you want to process.
 2.  Ensure the `example_html` directory exists at the root of your project, or the script will fail when trying to save the files.
 3.  You can run this script using `npx ts-node src/test-url-cleaning.ts` (assuming you have `ts-node` installed).
@@ -115,8 +112,6 @@ can you update it so that there is another 'const selector' that we wait for to 
 
 _**Assistant**_
 
-
-
 ---
 
 Okay, I will update the `src/test-url-cleaning.ts` script to include a check for a specific selector after the page loads.
@@ -126,7 +121,6 @@ Okay, I will update the `src/test-url-cleaning.ts` script to include a check for
 3.  If the selector isn't found within the default timeout (30 seconds), the script will log an error and exit.
 
 Here's the modification:
-
 
 ---
 
@@ -139,7 +133,7 @@ Here's the modification:
   const CLEANED_HTML_OUTPUT_PATH = path.resolve('example_html', 'cleaned_page_content.html');
       await page.goto(URL_TO_TEST, { waitUntil: 'domcontentloaded' });
       console.log('Page navigation successful.');
-+ 
++
 +     // --- Wait for specific selector ---
 +     console.log(`Waiting for selector "${SELECTOR_TO_WAIT_FOR}" to appear...`);
 +     try {
@@ -151,29 +145,29 @@ Here's the modification:
 +       if (browser) await browser.close();
 +       process.exit(1); // Exit if selector not found
 +     }
-  
+
       // --- Save Initial HTML ---
 -     console.log(`Saving initial HTML content to: ${INITIAL_HTML_OUTPUT_PATH}`);
 -     const initialContent = await page.content();
 -     await fs.writeFile(INITIAL_HTML_OUTPUT_PATH, initialContent, 'utf-8');
 -     console.log('Initial HTML saved.');
-- 
+-
 -     // --- Run Cleaning Function ---
 -     console.log('Running cleanNextraCodeBlocks function...');
 -     const params: OnVisitPageParams = { page, pushData: dummyPushData };
 -     await cleanNextraCodeBlocks(params);
 -     console.log('cleanNextraCodeBlocks function finished.');
-- 
+-
 -     // --- Save Cleaned HTML ---
 -     console.log(`Saving cleaned HTML content to: ${CLEANED_HTML_OUTPUT_PATH}`);
 -     const cleanedContent = await page.content(); // Get content *after* cleaning
 -     await fs.writeFile(CLEANED_HTML_OUTPUT_PATH, cleanedContent, 'utf-8');
 -     console.log('Cleaned HTML saved.');
-- 
+-
 -     console.log('Script finished successfully.');
 -     console.log(`Initial HTML saved to: ${INITIAL_HTML_OUTPUT_PATH}`);
 -     console.log(`Cleaned HTML saved to: ${CLEANED_HTML_OUTPUT_PATH}`);
-- 
+-
 -   } catch (error) {
 -     console.error('--- ERROR DURING EXECUTION ---');
 -     console.error(error);
@@ -195,59 +189,60 @@ It looks like the edit didn't apply correctly and introduced a syntax error (an 
 ---
 
 ```diff
-  
+
       // --- Save Initial HTML ---
 -     console.log(`
 +     console.log(`Saving initial HTML content to: ${INITIAL_HTML_OUTPUT_PATH}`);
 +     const initialContent = await page.content();
 +     await fs.writeFile(INITIAL_HTML_OUTPUT_PATH, initialContent, 'utf-8');
 +     console.log('Initial HTML saved.');
-+ 
++
 +     // --- Run Cleaning Function ---
 +     const cleanedContent = await cleanNextraCodeBlocks(initialContent);
 +     console.log(`Saving cleaned HTML content to: ${CLEANED_HTML_OUTPUT_PATH}`);
 +     await fs.writeFile(CLEANED_HTML_OUTPUT_PATH, cleanedContent, 'utf-8');
 +     console.log('Cleaned HTML saved.');
-+ 
++
 +   } catch (error) {
 +     console.error('Error:', error);
 +   } finally {
 +     if (browser) await browser.close();
 +   }
 + })();
-+ 
++
 ```
 
 ---
 
-It seems the previous edit attempt also resulted in errors, likely misunderstanding how `cleanNextraCodeBlocks` should be called and used. It modifies the page *in place* using `page.evaluate`, it doesn't return the modified HTML string directly.
+It seems the previous edit attempt also resulted in errors, likely misunderstanding how `cleanNextraCodeBlocks` should be called and used. It modifies the page _in place_ using `page.evaluate`, it doesn't return the modified HTML string directly.
 
 Let's correct the script again to:
+
 1.  Add the `SELECTOR_TO_WAIT_FOR` and the `waitForSelector` logic correctly.
 2.  Keep the original structure where `cleanNextraCodeBlocks` is called with the `page` object.
-3.  Get the cleaned content using `page.content()` *after* `cleanNextraCodeBlocks` has run.
+3.  Get the cleaned content using `page.content()` _after_ `cleanNextraCodeBlocks` has run.
 
 ---
 
 ```diff
-  
+
       // --- Run Cleaning Function ---
 -     const cleanedContent = await cleanNextraCodeBlocks(initialContent);
 +     console.log('Running cleanNextraCodeBlocks function...');
 +     const params: OnVisitPageParams = { page, pushData: dummyPushData };
 +     await cleanNextraCodeBlocks(params);
 +     console.log('cleanNextraCodeBlocks function finished.');
-+ 
++
 +     // --- Save Cleaned HTML ---
       console.log(`Saving cleaned HTML content to: ${CLEANED_HTML_OUTPUT_PATH}`);
 +     const cleanedContent = await page.content(); // Get content *after* cleaning
       await fs.writeFile(CLEANED_HTML_OUTPUT_PATH, cleanedContent, 'utf-8');
       console.log('Cleaned HTML saved.');
-  
+
 +     console.log('Script finished successfully.');
 +     console.log(`Initial HTML saved to: ${INITIAL_HTML_OUTPUT_PATH}`);
 +     console.log(`Cleaned HTML saved to: ${CLEANED_HTML_OUTPUT_PATH}`);
-+ 
++
     } catch (error) {
 -     console.error('Error:', error);
 +     console.error('--- ERROR DURING EXECUTION ---');
@@ -281,8 +276,6 @@ can it also do a full page screen shot and save that too
 
 _**Assistant**_
 
-
-
 ---
 
 Okay, I can add that. I'll update the script to take a full-page screenshot after the specified selector is found and save it as a PNG file.
@@ -299,20 +292,20 @@ Here's the updated script:
   const CLEANED_HTML_OUTPUT_PATH = path.resolve('example_html', 'cleaned_page_content.html');
 + const SCREENSHOT_OUTPUT_PATH = path.resolve('example_html', 'full_page_screenshot.png');
   // ---------------------
-  
+
         process.exit(1); // Exit if selector not found
       }
-+ 
++
 +     // --- Take Full Page Screenshot ---
 +     console.log(`Taking full page screenshot and saving to: ${SCREENSHOT_OUTPUT_PATH}`);
 +     await page.screenshot({ path: SCREENSHOT_OUTPUT_PATH, fullPage: true });
 +     console.log('Screenshot saved.');
-  
+
       // --- Save Initial HTML ---
       console.log(`Initial HTML saved to: ${INITIAL_HTML_OUTPUT_PATH}`);
       console.log(`Cleaned HTML saved to: ${CLEANED_HTML_OUTPUT_PATH}`);
 +     console.log(`Screenshot saved to: ${SCREENSHOT_OUTPUT_PATH}`);
-  
+
     } catch (error) {
 ```
 
@@ -322,7 +315,4 @@ I've updated the script `src/test-url-cleaning.ts`. It will now take a full-page
 
 ---
 
-
-
 ---
-

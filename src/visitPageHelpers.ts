@@ -142,13 +142,14 @@ export const cleanNextraCodeBlocks = async ({
       // Find the specific <code class="nextra-code"> element inside the <pre>
       const codeElement = codeBlock.querySelector("code.nextra-code");
       if (!codeElement) {
-          return; // Skip pre blocks that don't contain the target code element
+        return; // Skip pre blocks that don't contain the target code element
       }
 
       processedCount++; // Increment count for blocks containing the target code element
 
       // Get all direct child spans within the code element
-      const lineSpans = codeElement.querySelectorAll<HTMLElement>(":scope > span");
+      const lineSpans =
+        codeElement.querySelectorAll<HTMLElement>(":scope > span");
       let extractedCodeText = "";
 
       lineSpans.forEach((lineSpan) => {
@@ -161,28 +162,31 @@ export const cleanNextraCodeBlocks = async ({
       const newPre = document.createElement("pre");
       const newCode = document.createElement("code");
 
-      const langClass = Array.from(codeElement.classList).find(cls => cls.startsWith('language-')) || 'language-typescript'; // Default to typescript
+      const langClass =
+        Array.from(codeElement.classList).find((cls) =>
+          cls.startsWith("language-"),
+        ) || "language-typescript"; // Default to typescript
       newCode.className = langClass;
       newCode.textContent = cleanedText;
       newPre.appendChild(newCode);
 
       if (codeBlock.parentNode) {
-          codeBlock.parentNode.replaceChild(newPre, codeBlock);
-          replacedCount++; // Increment count for successfully replaced blocks
+        codeBlock.parentNode.replaceChild(newPre, codeBlock);
+        replacedCount++; // Increment count for successfully replaced blocks
       }
     });
 
     // Return summary data
     return {
-        totalFound: codeBlocks.length,
-        processed: processedCount,
-        replaced: replacedCount
+      totalFound: codeBlocks.length,
+      processed: processedCount,
+      replaced: replacedCount,
     };
   });
 
   // Log the results in the Node.js console
   console.log(
-    `\x1b[96m[cleanNextraCodeBlocks][0m Found: ${results.totalFound}, Processed: ${results.processed}, Replaced: ${results.replaced} Nextra code blocks.`
+    `\x1b[96m[cleanNextraCodeBlocks][0m Found: ${results.totalFound}, Processed: ${results.processed}, Replaced: ${results.replaced} Nextra code blocks.`,
   );
 };
 

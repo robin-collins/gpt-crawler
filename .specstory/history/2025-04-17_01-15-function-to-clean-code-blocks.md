@@ -4,13 +4,11 @@
 
 _**User**_
 
-can you provide a second cleanCodeBlocks function `cleanNextraCodeBlocks` that will clean up the <pre><code> in the example file @reactflow.html 
+can you provide a second cleanCodeBlocks function `cleanNextraCodeBlocks` that will clean up the <pre><code> in the example file @reactflow.html
 
 ---
 
 _**Assistant**_
-
-
 
 ---
 
@@ -18,14 +16,12 @@ Okay, I can add a new function `cleanNextraCodeBlocks` to `src/visitPageHelpers.
 
 This function will target `<pre class="nextra-code">` elements, extract the text content from the nested `<span>` tags within the inner `<code>` tag, reconstruct the code, and replace the original structure with a simplified `<pre><code>...</code></pre>`.
 
-
-
 ---
 
 ```diff
     });
   };
-+ 
++
 + /**
 +  * Function to clean Nextra-specific code blocks by extracting text from spans.
 +  * @param params - The onVisitPage parameters
@@ -36,23 +32,23 @@ This function will target `<pre class="nextra-code">` elements, extract the text
 + }: OnVisitPageParams): Promise<void> => {
 +   await page.evaluate(() => {
 +     const codeBlocks = document.querySelectorAll("pre.nextra-code");
-+ 
++
 +     codeBlocks.forEach((codeBlock) => {
 +       if (!(codeBlock instanceof HTMLElement)) return;
-+ 
++
 +       // Find the inner code element
 +       const codeElement = codeBlock.querySelector("code.nextra-code");
 +       if (!codeElement) return;
-+ 
++
 +       // Get all direct child spans within the code element
 +       const codeSpans = codeElement.querySelectorAll<HTMLElement>(":scope > span");
 +       let codeText = "";
-+ 
++
 +       codeSpans.forEach((span) => {
 +         // Append the text content of each span, followed by a newline
 +         codeText += (span.textContent || "") + "\\n";
 +       });
-+ 
++
 +       // Create new clean elements
 +       const newPre = document.createElement("pre");
 +       const newCode = document.createElement("code");
@@ -61,7 +57,7 @@ This function will target `<pre class="nextra-code">` elements, extract the text
 +       newCode.className = langClass;
 +       newCode.textContent = codeText.trim(); // Trim trailing newline
 +       newPre.appendChild(newCode);
-+ 
++
 +       // Replace the old complex structure with our clean one
 +       if (codeBlock.parentNode) {
 +         codeBlock.parentNode.replaceChild(newPre, codeBlock);
@@ -69,7 +65,7 @@ This function will target `<pre class="nextra-code">` elements, extract the text
 +     });
 +   });
 + };
-  
+
   /**
 ```
 
@@ -87,24 +83,20 @@ how does it handle there being only one <pre> but many <code>, i ask because no 
 
 _**Assistant**_
 
-
-
 ---
 
 You've hit on the exact reason why it likely failed!
 
 My apologies, I made an incorrect assumption based on the function name `cleanNextraCodeBlocks`.
 
-1.  **Selector Mismatch:** The function currently looks for `<pre class="nextra-code">`. However, in your `reactflow.html` example, the structure is actually `<pre class="... not-prose ...">` which contains `<code class="nextra-code">`. The function's initial `document.querySelectorAll("pre.nextra-code")` finds *nothing* because no `<pre>` element has that specific class.
-2.  **Handling Multiple `<code>` (If the selector matched):** If the `<pre>` selector *had* matched, the line `const codeElement = codeBlock.querySelector("code.nextra-code");` uses `querySelector`. This means it would only find and process the **first** `<code>` element *within* that `<pre>` that also has the class `nextra-code`. Any subsequent `<code>` elements within the same `<pre>`, even if they had the `nextra-code` class, would be ignored by the current logic.
+1.  **Selector Mismatch:** The function currently looks for `<pre class="nextra-code">`. However, in your `reactflow.html` example, the structure is actually `<pre class="... not-prose ...">` which contains `<code class="nextra-code">`. The function's initial `document.querySelectorAll("pre.nextra-code")` finds _nothing_ because no `<pre>` element has that specific class.
+2.  **Handling Multiple `<code>` (If the selector matched):** If the `<pre>` selector _had_ matched, the line `const codeElement = codeBlock.querySelector("code.nextra-code");` uses `querySelector`. This means it would only find and process the **first** `<code>` element _within_ that `<pre>` that also has the class `nextra-code`. Any subsequent `<code>` elements within the same `<pre>`, even if they had the `nextra-code` class, would be ignored by the current logic.
 
 **The Fix:**
 
 The primary issue is the initial selector for the `<pre>` element. We need to adjust it to correctly identify the parent `<pre>` tag based on the structure in `reactflow.html`. Using `pre.not-prose` seems like a good candidate based on the example.
 
 I will modify the `cleanNextraCodeBlocks` function to use `pre.not-prose` as the initial selector.
-
-
 
 ---
 
@@ -114,10 +106,10 @@ I will modify the `cleanNextraCodeBlocks` function to use `pre.not-prose` as the
 -     const codeBlocks = document.querySelectorAll("pre.nextra-code");
 +     // Select <pre> elements that likely contain Nextra code blocks (using .not-prose based on example)
 +     const codeBlocks = document.querySelectorAll("pre.not-prose");
-  
+
       codeBlocks.forEach((codeBlock) => {
         if (!(codeBlock instanceof HTMLElement)) return;
-  
+
 -       // Find the inner code element
 +       // Find the inner code element with the specific nextra-code class
         const codeElement = codeBlock.querySelector("code.nextra-code");
@@ -132,14 +124,12 @@ I've updated the selector in `cleanNextraCodeBlocks` within `src/visitPageHelper
 
 _**User**_
 
-still not extracting the code blocks, I have added another file for you to use to refine the function. @reactflow2.html 
-I think you should make a seperate ts file that sole purpose is to test your methodology for cleaning up the code blocks. If you can get the new script to spit out clean <pre><code></code></pre> then we integrate it into @visitPageHelpers.ts 
+still not extracting the code blocks, I have added another file for you to use to refine the function. @reactflow2.html
+I think you should make a seperate ts file that sole purpose is to test your methodology for cleaning up the code blocks. If you can get the new script to spit out clean <pre><code></code></pre> then we integrate it into @visitPageHelpers.ts
 
 ---
 
 _**Assistant**_
-
-
 
 ---
 
@@ -149,37 +139,35 @@ Here's the plan:
 
 1.  I'll create a new file named `test-code-cleaning.ts` in the `src` directory.
 2.  This script will use Playwright to:
-    *   Launch a browser.
-    *   Open the local `example_html/reactflow2.html` file.
-    *   Execute the DOM manipulation logic (adapted from `cleanNextraCodeBlocks`) within the page's context.
-    *   Retrieve the `outerHTML` of the modified `<pre>` elements.
-    *   Print these cleaned HTML snippets to the console.
+    - Launch a browser.
+    - Open the local `example_html/reactflow2.html` file.
+    - Execute the DOM manipulation logic (adapted from `cleanNextraCodeBlocks`) within the page's context.
+    - Retrieve the `outerHTML` of the modified `<pre>` elements.
+    - Print these cleaned HTML snippets to the console.
 3.  We'll examine the output of this script. If it successfully prints the clean `<pre><code>...</code></pre>` blocks, we'll know the core logic is correct and can integrate it back into `visitPageHelpers.ts`. If not, we'll refine the logic within this test script until it works.
 
 First, I'll create the `test-code-cleaning.ts` file with the initial logic.
 
-
-
 ---
 
 ```diff
-- 
+-
 + import { chromium } from 'playwright';
 + import path from 'path';
 + import fs from 'fs';
-+ 
++
 + // Logic adapted from cleanNextraCodeBlocks - designed to be run in page.evaluate()
 + const cleaningLogic = () => {
 +   // Select <pre> elements using the class identified in reactflow examples
 +   const codeBlocks = document.querySelectorAll("pre.not-prose");
 +   const results = [];
-+ 
++
 +   // Use console.log inside evaluate for debugging in the browser's context (visible via page.on('console'))
 +   console.log(`[Browser] Found ${codeBlocks.length} 'pre.not-prose' elements.`);
-+ 
++
 +   codeBlocks.forEach((codeBlock, index) => {
 +     if (!(codeBlock instanceof HTMLElement)) return;
-+ 
++
 +     // Find the specific <code class="nextra-code"> element inside the <pre>
 +     const codeElement = codeBlock.querySelector("code.nextra-code");
 +     if (!codeElement) {
@@ -187,32 +175,32 @@ First, I'll create the `test-code-cleaning.ts` file with the initial logic.
 +         return; // Skip pre blocks that don't contain the target code element
 +     }
 +     console.log(`[Browser] Processing pre block ${index} containing code.nextra-code.`);
-+ 
++
 +     // Get all direct child spans within the code element - these often represent lines in Nextra/Shiki highlighting
 +     const lineSpans = codeElement.querySelectorAll<HTMLElement>(":scope > span");
 +     let extractedCodeText = "";
 +     console.log(`[Browser] Found ${lineSpans.length} direct child spans (lines) in code block ${index}.`);
-+ 
++
 +     lineSpans.forEach((lineSpan, lineIndex) => {
 +       // textContent should retrieve text from all descendants, handling nested spans
 +       const lineText = lineSpan.textContent || "";
 +       console.log(`[Browser] Line ${lineIndex} text content: "${lineText}"`);
 +       extractedCodeText += lineText + "\n"; // Add newline after each line span's content
 +     });
-+ 
++
 +     const originalHtml = codeBlock.outerHTML; // For debugging comparison
 +     const cleanedText = extractedCodeText.trim(); // Trim leading/trailing whitespace/newlines
-+ 
++
 +     // --- Create the new, clean structure ---
 +     const newPre = document.createElement("pre");
 +     const newCode = document.createElement("code");
-+ 
++
 +     // Attempt to preserve the language class if present (e.g., language-typescript)
 +     const langClass = Array.from(codeElement.classList).find(cls => cls.startsWith('language-')) || 'language-bash'; // Default to bash or ts?
 +     newCode.className = langClass;
 +     newCode.textContent = cleanedText;
 +     newPre.appendChild(newCode);
-+ 
++
 +     // --- Replace the old block with the new one ---
 +     if (codeBlock.parentNode) {
 +         codeBlock.parentNode.replaceChild(newPre, codeBlock);
@@ -225,7 +213,7 @@ First, I'll create the `test-code-cleaning.ts` file with the initial logic.
 +         results.push({ original: originalHtml, cleanedHtml: null, text: cleanedText });
 +     }
 +   });
-+ 
++
 +   // Return data back to the Node.js context
 +   return {
 +       totalPreBlocksFound: codeBlocks.length,
@@ -235,8 +223,8 @@ First, I'll create the `test-code-cleaning.ts` file with the initial logic.
 +       extractedTexts: results.map(r => r.text) // Also return extracted text for debugging
 +   };
 + };
-+ 
-+ 
++
++
 + // --- Main execution logic ---
 + (async () => {
 +   let browser;
@@ -245,17 +233,17 @@ First, I'll create the `test-code-cleaning.ts` file with the initial logic.
 +     browser = await chromium.launch();
 +     const page = await browser.newPage();
 +     console.log('Browser launched, new page created.');
-+ 
++
 +     // Forward browser console logs to Node console
 +     page.on('console', msg => console.log(`BROWSER LOG: ${msg.text()}`));
-+ 
++
 +     // Construct the absolute path to the HTML file
 +     // Assumes script is run from workspace root or uses a relative path correctly managed by the execution environment
 +     const filePath = path.resolve(__dirname, '..', 'example_html', 'reactflow2.html');
 +     const fileUrl = `file://${filePath}`;
-+ 
++
 +     console.log(`Attempting to load file: ${fileUrl}`);
-+ 
++
 +     // Verify file exists before attempting to load
 +     if (!fs.existsSync(filePath)) {
 +         console.error(`
@@ -265,22 +253,22 @@ First, I'll create the `test-code-cleaning.ts` file with the initial logic.
 +         process.exit(1); // Exit if file doesn't exist
 +     }
 +     console.log(`File exists. Navigating page to ${fileUrl}...`);
-+ 
++
 +     await page.goto(fileUrl, { waitUntil: 'domcontentloaded' });
 +     console.log('Page navigation successful.');
-+ 
++
 +     // Execute the cleaning logic within the page context
 +     console.log('Executing cleaning logic in browser context...');
 +     const cleaningResult = await page.evaluate(cleaningLogic);
 +     console.log('Cleaning logic execution finished.');
-+ 
++
 +     // --- Output Results ---
 +     console.log('
 + --- Cleaning Execution Summary ---');
 +     console.log(`Total '<pre class="not-prose">' blocks found on page: ${cleaningResult.totalPreBlocksFound}`);
 +     console.log(`Blocks containing '<code class="nextra-code">' processed: ${cleaningResult.processedBlocks}`);
 +     console.log(`Blocks successfully replaced with clean HTML: ${cleaningResult.cleanedPreHtmls.length}`);
-+ 
++
 +     if (cleaningResult.cleanedPreHtmls && cleaningResult.cleanedPreHtmls.length > 0) {
 +         console.log('
 + --- Successfully Cleaned <pre> Blocks (HTML) ---');
@@ -305,7 +293,7 @@ First, I'll create the `test-code-cleaning.ts` file with the initial logic.
 +              })
 +          }
 +     }
-+ 
++
 +   } catch (error) {
 +     console.error('
 + --- ERROR DURING EXECUTION ---');
@@ -317,14 +305,12 @@ First, I'll create the `test-code-cleaning.ts` file with the initial logic.
 + Browser closed.');
 +     }
 +   }
-+ })(); 
++ })();
 ```
 
 ---
 
 It looks like the file creation introduced several linter errors, likely related to string formatting or syntax issues within the `async` function block. I'll fix those now.
-
-
 
 ---
 
@@ -336,7 +322,7 @@ It looks like the file creation introduced several linter errors, likely related
 +         console.error(`\n---> ERROR: File not found at path: ${filePath}`);
           console.error(`---> Please ensure 'example_html/reactflow2.html' exists relative to the project root.`);
           if (browser) await browser.close();
-  
+
       // --- Output Results ---
 -     console.log('
 - --- Cleaning Execution Summary ---');
@@ -344,7 +330,7 @@ It looks like the file creation introduced several linter errors, likely related
       console.log(`Total '<pre class="not-prose">' blocks found on page: ${cleaningResult.totalPreBlocksFound}`);
       console.log(`Blocks containing '<code class="nextra-code">' processed: ${cleaningResult.processedBlocks}`);
       console.log(`Blocks successfully replaced with clean HTML: ${cleaningResult.cleanedPreHtmls.length}`);
-  
+
       if (cleaningResult.cleanedPreHtmls && cleaningResult.cleanedPreHtmls.length > 0) {
 -         console.log('
 - --- Successfully Cleaned <pre> Blocks (HTML) ---');
@@ -376,7 +362,7 @@ It looks like the file creation introduced several linter errors, likely related
 +              });
            }
       }
-  
+
     } catch (error) {
 -     console.error('
 - --- ERROR DURING EXECUTION ---');
@@ -398,8 +384,6 @@ It seems the previous fix resolved the string literal issues, but now the linter
 
 I'll add an explicit type definition for the `results` array within the `cleaningLogic` function to resolve this.
 
-
-
 ---
 
 ```diff
@@ -408,7 +392,7 @@ I'll add an explicit type definition for the `results` array within the `cleanin
 -   const results = [];
 +   // Define the type for the results array
 +   const results: { original: string; cleanedHtml: string | null; text: string }[] = [];
-  
+
     // Use console.log inside evaluate for debugging in the browser's context (visible via page.on('console'))
 ```
 
@@ -434,21 +418,15 @@ Please run this command and share the full output. We'll analyze it to see if th
 
 _**User**_
 
-
-
 ---
 
 _**Assistant**_
-
-
 
 ---
 
 Ah, it looks like there's an issue with how `ts-node` is executing the script, possibly related to ES Module (`import`/`export`) syntax recognition.
 
 Could you please try running the command again, but this time adding the `--esm` flag? This explicitly tells `ts-node` to handle the file as an ES Module.
-
-
 
 ---
 
@@ -467,11 +445,11 @@ Clink v1.7.16 is available.
   https://github.com/chrisant996/clink/releases
 
 
-gpt-crawler on  fck_claude [$✘!?] is 📦 v1.4.0 via  v20.18.3 on ☁️  (us-east-2) 
+gpt-crawler on  fck_claude [$✘!?] is 📦 v1.4.0 via  v20.18.3 on ☁️  (us-east-2)
 ❯ npx ts-node --esm src/test-code-cleaning.ts
 TypeError [ERR_UNKNOWN_FILE_EXTENSION]: Unknown file extension ".ts" for D:\projects\gpt-crawler\src\test
 -code-cleaning.ts
-    at Object.getFileProtocolModuleFormat [as file:] (node:internal/modules/esm/get_format:176:9)        
+    at Object.getFileProtocolModuleFormat [as file:] (node:internal/modules/esm/get_format:176:9)
     at defaultGetFormat (node:internal/modules/esm/get_format:219:36)
     at defaultLoad (node:internal/modules/esm/load:143:22)
     at async nextLoad (node:internal/modules/esm/hooks:868:22)
@@ -482,7 +460,7 @@ TypeError [ERR_UNKNOWN_FILE_EXTENSION]: Unknown file extension ".ts" for D:\proj
 }
 
 
-gpt-crawler on  fck_claude [$✘!?] is 📦 v1.4.0 via  v20.18.3 on ☁️  (us-east-2) 
+gpt-crawler on  fck_claude [$✘!?] is 📦 v1.4.0 via  v20.18.3 on ☁️  (us-east-2)
 ❯
 ```
 
@@ -493,8 +471,6 @@ Okay, the `--esm` flag didn't resolve it either, and we're getting the same `ERR
 Let's try a different approach using Node.js's loader capability, which is sometimes more robust for ESM with `ts-node`.
 
 Could you run this command instead?
-
-
 
 ---
 
@@ -527,8 +503,6 @@ gpt-crawler on  fck_claude [$✘!?] is 📦 v1.4.0 via  v20.18.3 on ☁️
 
 ---
 
-
-
 ---
 
 Progress! It seems using `node --loader ts-node/esm` correctly picked up the ES Module syntax, but now we've encountered a common ESM issue: `ReferenceError: __dirname is not defined`.
@@ -536,10 +510,9 @@ Progress! It seems using `node --loader ts-node/esm` correctly picked up the ES 
 The `__dirname` variable (which gives the directory of the current file) is specific to CommonJS modules and isn't available in ES Modules. We need to derive the path differently using `import.meta.url`.
 
 I'll modify `src/test-code-cleaning.ts` to:
+
 1.  Import `fileURLToPath` from the `url` module.
 2.  Calculate `__dirname` using `import.meta.url` and `path.dirname`.
-
-
 
 ---
 
@@ -547,16 +520,16 @@ I'll modify `src/test-code-cleaning.ts` to:
   import path from 'path';
   import fs from 'fs';
 + import { fileURLToPath } from 'url';
-  
+
   // Logic adapted from cleanNextraCodeBlocks - designed to be run in page.evaluate()
       // Forward browser console logs to Node console
       page.on('console', msg => console.log(`BROWSER LOG: ${msg.text()}`));
-+ 
++
 +     // --- Calculate __dirname for ESM ---
 +     const __filename = fileURLToPath(import.meta.url);
 +     const __dirname = path.dirname(__filename);
 +     // ---------------------------------
-  
+
       // Construct the absolute path to the HTML file
 ```
 
@@ -565,8 +538,6 @@ I'll modify `src/test-code-cleaning.ts` to:
 Okay, I've updated `src/test-code-cleaning.ts` to correctly determine the directory path when running as an ES Module.
 
 Please try running the same command again:
-
-
 
 ---
 
@@ -610,7 +581,7 @@ BROWSER LOG: [Browser] Replaced pre block 3. Cleaned text length: 15
 BROWSER LOG: [Browser] Processing pre block 4 containing code.nextra-code.
 BROWSER LOG: [Browser] Found 34 direct child spans (lines) in code block 4.
 BROWSER LOG: [Browser] Line 0 text content: "import React from 'react';"
-BROWSER LOG: [Browser] Line 1 text content: "import { useShallow } from 'zustand/react/shallow';"        
+BROWSER LOG: [Browser] Line 1 text content: "import { useShallow } from 'zustand/react/shallow';"
 BROWSER LOG: [Browser] Line 2 text content: "import { ReactFlow } from '@xyflow/react';"
 BROWSER LOG: [Browser] Line 3 text content: " "
 BROWSER LOG: [Browser] Line 4 text content: "import '@xyflow/react/dist/style.css';"
@@ -647,13 +618,13 @@ BROWSER LOG: [Browser] Line 33 text content: "export default Flow;"
 BROWSER LOG: [Browser] Replaced pre block 4. Cleaned text length: 731
 BROWSER LOG: [Browser] Processing pre block 5 containing code.nextra-code.
 BROWSER LOG: [Browser] Found 12 direct child spans (lines) in code block 5.
-BROWSER LOG: [Browser] Line 0 text content: "updateNodeColor: (nodeId: string, color: string) => {"      
+BROWSER LOG: [Browser] Line 0 text content: "updateNodeColor: (nodeId: string, color: string) => {"
 BROWSER LOG: [Browser] Line 1 text content: "  set({"
 BROWSER LOG: [Browser] Line 2 text content: "    nodes: get().nodes.map((node) => {"
 BROWSER LOG: [Browser] Line 3 text content: "      if (node.id === nodeId) {"
 BROWSER LOG: [Browser] Line 4 text content: "        // it's important to create a new object here, to in
 form React Flow about the changes"
-BROWSER LOG: [Browser] Line 5 text content: "        return { ...node, data: { ...node.data, color } };" 
+BROWSER LOG: [Browser] Line 5 text content: "        return { ...node, data: { ...node.data, color } };"
 BROWSER LOG: [Browser] Line 6 text content: "      }"
 BROWSER LOG: [Browser] Line 7 text content: " "
 BROWSER LOG: [Browser] Line 8 text content: "      return node;"
@@ -665,7 +636,7 @@ BROWSER LOG: [Browser] Processing pre block 6 containing code.nextra-code.
 BROWSER LOG: [Browser] Found 3 direct child spans (lines) in code block 6.
 BROWSER LOG: [Browser] Line 0 text content: "const updateNodeColor = useStore((s) => s.updateNodeColor);"
 BROWSER LOG: [Browser] Line 1 text content: "..."
-BROWSER LOG: [Browser] Line 2 text content: "<button onClick={() => updateNodeColor(nodeId, color)} />;" 
+BROWSER LOG: [Browser] Line 2 text content: "<button onClick={() => updateNodeColor(nodeId, color)} />;"
 BROWSER LOG: [Browser] Replaced pre block 6. Cleaned text length: 122
 BROWSER LOG: [Browser] Processing pre block 7 containing code.nextra-code.
 BROWSER LOG: [Browser] Found 6 direct child spans (lines) in code block 7.
@@ -693,7 +664,7 @@ BROWSER LOG: [Browser] Line 8 text content: " "
 BROWSER LOG: [Browser] Line 9 text content: "  return ("
 BROWSER LOG: [Browser] Line 10 text content: "    <div style={{ backgroundColor: data.color, borderRadius
 : 10 }}>"
-BROWSER LOG: [Browser] Line 11 text content: "      <Handle type="target" position={Position.Top} />"    
+BROWSER LOG: [Browser] Line 11 text content: "      <Handle type="target" position={Position.Top} />"
 BROWSER LOG: [Browser] Line 12 text content: "      <div style={{ padding: 20 }}>"
 BROWSER LOG: [Browser] Line 13 text content: "        <input"
 BROWSER LOG: [Browser] Line 14 text content: "          type="color""
@@ -703,7 +674,7 @@ BROWSER LOG: [Browser] Line 16 text content: "          onChange={(evt) => updat
 BROWSER LOG: [Browser] Line 17 text content: "          className="nodrag""
 BROWSER LOG: [Browser] Line 18 text content: "        />"
 BROWSER LOG: [Browser] Line 19 text content: "      </div>"
-BROWSER LOG: [Browser] Line 20 text content: "      <Handle type="source" position={Position.Bottom} />" 
+BROWSER LOG: [Browser] Line 20 text content: "      <Handle type="source" position={Position.Bottom} />"
 BROWSER LOG: [Browser] Line 21 text content: "    </div>"
 BROWSER LOG: [Browser] Line 22 text content: "  );"
 BROWSER LOG: [Browser] Line 23 text content: "}"
@@ -855,8 +826,6 @@ The next step is to integrate this working logic back into the `cleanNextraCodeB
 
 I will now update `src/visitPageHelpers.ts` with the validated logic.
 
-
-
 ---
 
 ```diff
@@ -871,11 +840,11 @@ I will now update `src/visitPageHelpers.ts` with the validated logic.
       const codeBlocks = document.querySelectorAll("pre.not-prose");
 +     // Define the type for potential results if we needed to return data (not strictly needed here as we modify in place)
 +     // const results: { original: string; cleanedHtml: string | null; text: string }[] = [];
-  
+
 -     codeBlocks.forEach((codeBlock) => {
 +     codeBlocks.forEach((codeBlock, index) => {
         if (!(codeBlock instanceof HTMLElement)) return;
-  
+
 -       // Find the inner code element with the specific nextra-code class
 +       // Find the specific <code class="nextra-code"> element inside the <pre>
         const codeElement = codeBlock.querySelector("code.nextra-code");
@@ -885,41 +854,41 @@ I will now update `src/visitPageHelpers.ts` with the validated logic.
 +           // console.log(`[Browser] Skipping pre block ${index}: code.nextra-code child not found.`);
 +           return; // Skip pre blocks that don't contain the target code element
 +       }
-  
+
 -       // Get all direct child spans within the code element
 -       const codeSpans = codeElement.querySelectorAll<HTMLElement>(":scope > span");
 -       let codeText = "";
 +       // Get all direct child spans within the code element - these often represent lines in Nextra/Shiki highlighting
 +       const lineSpans = codeElement.querySelectorAll<HTMLElement>(":scope > span");
 +       let extractedCodeText = "";
-  
+
 -       codeSpans.forEach((span) => {
 -         // Append the text content of each span, followed by a newline
 -         codeText += (span.textContent || "") + "\\n";
 -       });
-- 
+-
 -       // Create new clean elements
 +       lineSpans.forEach((lineSpan) => {
 +         // textContent should retrieve text from all descendants, handling nested spans
 +         const lineText = lineSpan.textContent || "";
 +         extractedCodeText += lineText + "\n"; // Add newline after each line span's content
 +       });
-+ 
++
 +       const cleanedText = extractedCodeText.trim(); // Trim leading/trailing whitespace/newlines
-+ 
++
 +       // --- Create the new, clean structure ---
         const newPre = document.createElement("pre");
         const newCode = document.createElement("code");
 -       // Attempt to guess the language from existing classes or default to bash/typescript
 -       const langClass = Array.from(codeElement.classList).find(cls => cls.startsWith('language-')) || 'language-typescript'; // Default or detect
-+ 
++
 +       // Attempt to preserve the language class if present (e.g., language-typescript)
 +       const langClass = Array.from(codeElement.classList).find(cls => cls.startsWith('language-')) || 'language-bash'; // Default to bash
         newCode.className = langClass;
 -       newCode.textContent = codeText.trim(); // Trim trailing newline
 +       newCode.textContent = cleanedText;
         newPre.appendChild(newCode);
-  
+
 -       // Replace the old complex structure with our clean one
 +       // --- Replace the old block with the new one ---
         if (codeBlock.parentNode) {
@@ -931,7 +900,7 @@ I will now update `src/visitPageHelpers.ts` with the validated logic.
 +           // console.log(`[Browser] Could not replace pre block ${index}: no parent node.`);
         }
       });
-+ 
++
 +     // No need to return data when modifying DOM in place for onVisitPage
     });
   };
@@ -948,20 +917,20 @@ This should now correctly handle the code block structures found in `reactflow2.
 _**User**_
 
 [{
-	"resource": "/d:/projects/gpt-crawler/src/visitPageHelpers.ts",
-	"owner": "typescript",
-	"code": "6133",
-	"severity": 4,
-	"message": "'index' is declared but its value is never read.",
-	"source": "ts",
-	"startLineNumber": 139,
-	"startColumn": 36,
-	"endLineNumber": 139,
-	"endColumn": 41,
-	"tags": [
-		1
-	],
-	"modelVersionId": 2
+"resource": "/d:/projects/gpt-crawler/src/visitPageHelpers.ts",
+"owner": "typescript",
+"code": "6133",
+"severity": 4,
+"message": "'index' is declared but its value is never read.",
+"source": "ts",
+"startLineNumber": 139,
+"startColumn": 36,
+"endLineNumber": 139,
+"endColumn": 41,
+"tags": [
+1
+],
+"modelVersionId": 2
 }]
 ?
 .
@@ -969,8 +938,6 @@ _**User**_
 ---
 
 _**Assistant**_
-
-
 
 ---
 
@@ -980,18 +947,16 @@ I will remove the unused `index` variable.
 
 Also, I noticed you changed the default language class in the test script to `language-typescript`. I'll update the main `cleanNextraCodeBlocks` function to use `language-typescript` as the default as well, for consistency.
 
-
-
 ---
 
 ```diff
       // const results: { original: string; cleanedHtml: string | null; text: string }[] = [];
-  
+
 -     codeBlocks.forEach((codeBlock, index) => {
 +     codeBlocks.forEach((codeBlock) => {
         if (!(codeBlock instanceof HTMLElement)) return;
-  
-  
+
+
         // Attempt to preserve the language class if present (e.g., language-typescript)
 -       const langClass = Array.from(codeElement.classList).find(cls => cls.startsWith('language-')) || 'language-bash'; // Default to bash
 +       const langClass = Array.from(codeElement.classList).find(cls => cls.startsWith('language-')) || 'language-typescript'; // Default to typescript
@@ -1013,23 +978,19 @@ can the `cleanNextraCodeBlocks` function provide any console output?
 
 _**Assistant**_
 
-
-
 ---
 
 Yes, we can modify `cleanNextraCodeBlocks` to provide console output that will appear in your Node.js terminal when the crawler runs.
 
-Currently, any `console.log` statements *inside* the `page.evaluate()` block only go to the browser's internal console, which isn't visible during a normal crawl.
+Currently, any `console.log` statements _inside_ the `page.evaluate()` block only go to the browser's internal console, which isn't visible during a normal crawl.
 
 To get output in your Node.js terminal, we need to:
 
 1.  Have the `page.evaluate()` function collect summary information (like how many blocks were found and processed).
 2.  Return this summary information from `page.evaluate()`.
-3.  Log this returned information using `console.log` *outside* the `page.evaluate()` call, back in the Node.js context of the `cleanNextraCodeBlocks` function.
+3.  Log this returned information using `console.log` _outside_ the `page.evaluate()` call, back in the Node.js context of the `cleanNextraCodeBlocks` function.
 
 I'll modify the function to return and log the count of `<pre class="not-prose">` elements found and the count of blocks successfully processed and replaced.
-
-
 
 ---
 
@@ -1044,7 +1005,7 @@ I'll modify the function to return and log the count of `<pre class="not-prose">
 -     // const results: { original: string; cleanedHtml: string | null; text: string }[] = [];
 +     let processedCount = 0;
 +     let replacedCount = 0;
-  
+
       codeBlocks.forEach((codeBlock) => {
         const codeElement = codeBlock.querySelector("code.nextra-code");
         if (!codeElement) {
@@ -1052,34 +1013,34 @@ I'll modify the function to return and log the count of `<pre class="not-prose">
 -           // console.log(`[Browser] Skipping pre block ${index}: code.nextra-code child not found.`);
             return; // Skip pre blocks that don't contain the target code element
         }
-  
+
 -       // Get all direct child spans within the code element - these often represent lines in Nextra/Shiki highlighting
 +       processedCount++; // Increment count for blocks containing the target code element
-+ 
++
 +       // Get all direct child spans within the code element
         const lineSpans = codeElement.querySelectorAll<HTMLElement>(":scope > span");
         let extractedCodeText = "";
-  
+
         lineSpans.forEach((lineSpan) => {
 -         // textContent should retrieve text from all descendants, handling nested spans
           const lineText = lineSpan.textContent || "";
 -         extractedCodeText += lineText + "\n"; // Add newline after each line span's content
 +         extractedCodeText += lineText + "\n";
         });
-  
+
 -       const cleanedText = extractedCodeText.trim(); // Trim leading/trailing whitespace/newlines
 +       const cleanedText = extractedCodeText.trim();
-  
+
 -       // --- Create the new, clean structure ---
         const newPre = document.createElement("pre");
         const newCode = document.createElement("code");
-  
+
 -       // Attempt to preserve the language class if present (e.g., language-typescript)
         const langClass = Array.from(codeElement.classList).find(cls => cls.startsWith('language-')) || 'language-typescript'; // Default to typescript
         newCode.className = langClass;
         newCode.textContent = cleanedText;
         newPre.appendChild(newCode);
-  
+
 -       // --- Replace the old block with the new one ---
         if (codeBlock.parentNode) {
             codeBlock.parentNode.replaceChild(newPre, codeBlock);
@@ -1090,13 +1051,13 @@ I'll modify the function to return and log the count of `<pre class="not-prose">
 -           // console.log(`[Browser] Could not replace pre block ${index}: no parent node.`);
 -       }
 -     });
-- 
+-
 -     // No need to return data when modifying DOM in place for onVisitPage
 -   });
 +           replacedCount++; // Increment count for successfully replaced blocks
 +       }
 +     });
-+ 
++
 +     // Return summary data
 +     return {
 +         totalFound: codeBlocks.length,
@@ -1104,13 +1065,13 @@ I'll modify the function to return and log the count of `<pre class="not-prose">
 +         replaced: replacedCount
 +     };
 +   });
-+ 
++
 +   // Log the results in the Node.js console
 +   console.log(
 +     `\x1b[96m[cleanNextraCodeBlocks][0m Found: ${results.totalFound}, Processed: ${results.processed}, Replaced: ${results.replaced} Nextra code blocks.`
 +   );
   };
-  
+
 ```
 
 ---
@@ -1121,7 +1082,4 @@ You should now see output like `[cleanNextraCodeBlocks] Found: 9, Processed: 9, 
 
 ---
 
-
-
 ---
-

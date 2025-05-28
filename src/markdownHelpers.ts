@@ -5,9 +5,9 @@
  */
 export function addLanguageToCodeBlocks(
   markdown: string,
-  language = "text"
+  language = "text",
 ): string {
-  const lines = markdown.split('\n');
+  const lines = markdown.split("\n");
   const processedLines: string[] = [];
   let inCodeBlock = false;
   const fenceRegex = /^\s*```(.*)/; // Matches ``` and captures anything after
@@ -38,7 +38,7 @@ export function addLanguageToCodeBlocks(
     }
   }
 
-  return processedLines.join('\n');
+  return processedLines.join("\n");
 }
 
 /**

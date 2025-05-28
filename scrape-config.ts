@@ -8,14 +8,12 @@ const { visitPage, markdown } = ConfigModule;
  * Removes footer and outline elements from the DOM
  */
 
-const removeNodesFromDOM = visitPage.createRemoveNodesFunction([
-  "iframe",
-]);
+const removeNodesFromDOM = visitPage.createRemoveNodesFunction(["iframe"]);
 
 const combinedOnVisitPage = visitPage.chainVisitFunctions(
   visitPage.cleanNextraCodeBlocks,
-  visitPage.createRemoveNodesFunction(["iframe",]),
-  );
+  visitPage.createRemoveNodesFunction(["iframe"]),
+);
 
 export const defaultConfig: Config = {
   url: "https://docs.hyperdiv.io/guide/getting-started",
@@ -23,9 +21,9 @@ export const defaultConfig: Config = {
   exclude: [],
   maxPagesToCrawl: 1,
   topic: "hyperdiv",
-  selector: "//*[@id=\"a9dd805ed\"]",
+  selector: '//*[@id="a9dd805ed"]',
   outputFileName: "hyperdiv.md",
-  outputFileFormat: "markdown"
+  outputFileFormat: "markdown",
   // onVisitPage: combinedOnVisitPage,
   // onProcessMarkdown: (md) => ConfigModule.markdown.addLanguageToCodeBlocks(md, "typescript"),
 };
