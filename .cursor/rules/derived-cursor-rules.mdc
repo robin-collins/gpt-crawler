@@ -1,5 +1,5 @@
 ---
-description: Cursor rules derived by SpecStory from the project AI interaction history
+description: AI rules derived by SpecStory from the project AI interaction history
 globs: *
 ---
 
@@ -40,6 +40,11 @@ Adhere to standard TypeScript coding conventions.  Maintain consistent indentati
 - When using `document.querySelector`, ensure the returned `Element` is cast to `HTMLElement` to access `innerText` property reliably (added 2025-04-03).
 - The `convertToMarkdown` function in `src/core.ts` has been updated to prevent newline characters from appearing in markdown links (added 2025-04-03).
 - The `addLanguageToCodeBlocks` function in `src/markdownHelpers.ts` has been updated to reliably add language specifiers to markdown code blocks (added 2025-04-17).
+- Use `cleanHyperdivCodeBlocks` to transform `div.codehilite > pre > code` structures into just `<pre><code>`. (added 2025-04-23)
+- Chain `cleanHyperdivCodeBlocks` and `cleanCodeBlocks` in `scrape-config.ts` to apply both specialized and general cleanup steps. (added 2025-04-23)
+- Use `cleanCodeBlocks` to remove prefixed line numbers and attempt to set a language class. (added 2025-04-23)
+- The `cleanCodeBlocks` function has been updated to use `innerText.split('\n')` instead of `textContent.split('\n')` for splitting code into lines to better preserve newlines. (added 2025-04-23)
+- The `cleanCodeBlocks` function has been modified to ensure that empty lines are preserved in the output, unless they are specifically the "$ powershell" command line. This fixes an issue where intentional blank lines in code were being removed. (added 2025-04-23)
 
 
 ## WORKFLOW & RELEASE RULES
@@ -52,6 +57,7 @@ Adhere to standard TypeScript coding conventions.  Maintain consistent indentati
 - When using `document.querySelector`, ensure the returned `Element` is cast to `HTMLElement` to access `innerText` property reliably (added 2025-04-03).
 - Avoid generating markdown links with newline characters between the link text and the link reference.  The `convertToMarkdown` function in `src/core.ts` has been updated to prevent newline characters from appearing in markdown links (added 2025-04-03).
 - The `addLanguageToCodeBlocks` function in `src/markdownHelpers.ts` has been updated to reliably add language specifiers to markdown code blocks (added 2025-04-17).
+- Chain `cleanHyperdivCodeBlocks` and `cleanCodeBlocks` in `scrape-config.ts` to apply both specialized and general cleanup steps. (added 2025-04-23)
 
 
 ## REFERENCE EXAMPLES
@@ -69,17 +75,27 @@ Adhere to standard TypeScript coding conventions.  Maintain consistent indentati
 - Add explicit `HTMLElement` type casting when accessing `innerText` from `document.querySelector` results (added 2025-04-03).
 - The `convertToMarkdown` function in `src/core.ts` has been updated to prevent newline characters from appearing in markdown links (added 2025-04-03).
 - The `addLanguageToCodeBlocks` function in `src/markdownHelpers.ts` has been updated to reliably add language specifiers to markdown code blocks (added 2025-04-17).
+- The `cleanNextraCodeBlocks` function in `src/visitPageHelpers.ts` now provides console output indicating the number of code blocks found, processed, and replaced (added 2025-04-18).
+- Added `cleanHyperdivCodeBlocks` function to `src/visitPageHelpers.ts`. This function cleans up `div.codehilite` structures by replacing them with their inner `pre` tag, aiming to improve Markdown conversion consistency for code blocks from Hyperdiv-like documentation sites. (added 2025-04-23)
+- Modified `cleanCodeBlocks` in `src/visitPageHelpers.ts` to attempt to preserve existing language classes from `<code>` or `<pre>` elements, defaulting to `language-text` if none is found. This replaces the previous behavior of hardcoding `language-bash`. (added 2025-04-23)
+- Modified `cleanCodeBlocks` in `src/visitPageHelpers.ts` to preserve leading and trailing whitespace (including newlines and indentation) by removing `.trim()` calls that were affecting individual lines and the entire code block. This is critical for whitespace-sensitive languages like Python. (added 2025-04-23)
+- Modified `cleanCodeBlocks` in `src/visitPageHelpers.ts` to use `innerText.split('\n')` instead of `textContent.split('\n')` for splitting code into lines. This is an attempt to better preserve newlines in code blocks that are heavily structured with inline `<span>` elements for syntax highlighting, as `innerText` can better reflect visual line breaks. (added 2025-04-23)
+- Modified `cleanCodeBlocks` in `src/visitPageHelpers.ts` to ensure that empty lines are preserved in the output, unless they are specifically the "$ powershell" command line. This fixes an issue where intentional blank lines in code were being removed. (added 2025-04-23)
+- Investigating discrepancies between expected and actual markdown output, particularly concerning the title and introduction content. The scraper targets the "main" selector; confirm that the relevant content resides within this targeted area (added 2025-05-29).
 
 
 ## DEBUGGING
 - When debugging the `removeNodesFromDOM` function, ensure that the `createRemoveNodesFunction` in `@visitPageHelpers.ts` is correctly implemented and imported.  Verify that the import path in `scrape-config.ts` is correct (use `"./src/config"` instead of `"./src/config.js"`). Check that `config.ts` correctly exports `visitPageHelpers` without a `.js` extension.  Console logs within `page.evaluate()` will not appear in the Node.js terminal;  use `console.log` outside of `page.evaluate()` to log information to the terminal.  For debugging within `page.evaluate()`, return structured data from the function and log it after the `page.evaluate()` call.
 - To debug `createRemoveNodesFunction`, log selectors before the `page.evaluate()` call. Within `page.evaluate()`, return structured data (e.g., an object indicating whether selectors were found and their counts) instead of using `console.log`. Log this structured data after the `page.evaluate()` call. Avoid relying solely on `console.log` within `page.evaluate()` for terminal output.
-- The order of operations in `core.ts` must ensure that `removeNodesFromDOM` is executed *before* content is captured for markdown output.  Currently, content capture precedes the execution of the removal function, resulting in unwanted content in the output.  This requires a re-ordering of function calls within `core.ts`.  The `onVisitPage` function should be used to modify the DOM *before* content capture to prevent unwanted elements in the final markdown.  Incorrect placement of `console.log` statements within `page.evaluate()` will result in missing debug output in the terminal.  Return structured data from `page.evaluate()` and log it after the call for effective debugging within that function.  Do not modify imports/exports to include or remove `.js` extensions. The TypeScript compiler handles this.
+- The order of operations in `core.ts` must ensure that `removeNodesFromDOM` is executed *before* content is captured for markdown output.  Currently, content capture precedes the execution of the removal function, resulting in unwanted content in the output.  This requires a re-ordering of function calls within `core.ts`.  The `onVisitPage` function should be used to modify the DOM *before* content is captured to prevent unwanted elements in the final markdown.  Incorrect placement of `console.log` statements within `page.evaluate()` will result in missing debug output in the terminal.  Return structured data from `page.evaluate()` and log it after the call for effective debugging within that function.  Do not modify imports/exports to include or remove `.js` extensions. The TypeScript compiler handles this.
 - The `onVisitPage` function, as defined in `scrape-config.ts`, is now correctly executed *before* the content is captured for markdown conversion in `src/core.ts`.  This ensures DOM modifications are applied before content capture. The `onVisitPage` function call has been moved in `src/core.ts` to precede content capture (see 2025-03-07_14-08-execution-order-of-onvisitpage-function.md for details).
 - Address linter error in `scrape-config.ts` related to `onProcessMarkdown` not being defined in the Config type.  The `Config` type in `src/config.ts` has been updated to include the `onProcessMarkdown` property to resolve this linter error.
 - Refer to `LINTERRORS.md` for additional debugging guidance related to linting errors (added 2025-03-30).
 - Cast the result of `document.querySelector` to `HTMLElement` before accessing `innerText` to avoid TypeScript errors (added 2025-04-03).
 - The `cleanNextraCodeBlocks` function in `src/visitPageHelpers.ts` now provides console output indicating the number of code blocks found, processed, and replaced (added 2025-04-18).
+- If code blocks are rendered with single backticks instead of triple backticks, the root cause may be a combination of how the `Readability` library parses HTML structures and how `TurndownService` subsequently converts these potentially altered structures to Markdown. (added 2025-04-23)
+- If newlines are being lost in code blocks, ensure that the `cleanCodeBlocks` function is not removing lines that become empty after stripping prefixes. (added 2025-04-23)
+- When debugging title and content extraction issues, verify that the scraper's target selector ("main") correctly encompasses the `<h1>` tag and introductory content. (added 2025-05-29)
 
 
 ## FINAL DOs AND DON'Ts
@@ -97,7 +113,13 @@ Adhere to standard TypeScript coding conventions.  Maintain consistent indentati
 - **DO** run `npm run clean:build` to remove the `dist` directory and `npm run clean:pkgs` to remove `node_modules` and `package-lock.json` (added 2025-03-29).
 - **DO** run `npm run lint` to check for linting errors and `npm run lint:fix` to automatically fix them (added 2025-03-29).
 - **DO** address all linting errors as detailed in `LINTERRORS.md` (added 2025-03-30).
-- **DO** Configure the `@typescript-eslint/no-unused-vars` rule to ignore variables prefixed with an underscore `_` or disable the rule for specific lines where unused variables are necessary due to type definitions (added 2025-03-30).
+- **DO** Configure the `@typescript-eslint/no-unused-vars` rule to ignore variables prefixed with an underscore `_` or disable variables where necessary due to type definitions (added 2025-03-30).
 - **DO** Cast the result of `document.querySelector` to `HTMLElement` before accessing `innerText` to avoid TypeScript errors (added 2025-04-03).
 - **DO NOT** introduce newline characters between the link text and the link reference in markdown links.  The `convertToMarkdown` function in `src/core.ts` has been updated to prevent newline characters from appearing in markdown links (added 2025-04-03).
 - **DO** use the `addLanguageToCodeBlocks` function to consistently add language specifiers to markdown code blocks (added 2025-04-17).  The function now handles various edge cases and uses a more robust parsing method.
+- **DO** use `cleanHyperdivCodeBlocks` to transform `div.codehilite > pre > code` structures into just `<pre><code>`. (added 2025-04-23)
+- **DO** chain `cleanHyperdivCodeBlocks` and `cleanCodeBlocks` in `scrape-config.ts` to apply both specialized and general cleanup steps. (added 2025-04-23)
+- **DO** use `cleanCodeBlocks` to remove prefixed line numbers and attempt to set a language class. (added 2025-04-23)
+- **DO** use `innerText.split('\n')` instead of `textContent.split('\n')` in `cleanCodeBlocks` for splitting code into lines to better preserve newlines. (added 2025-04-23)
+- **DO** ensure that the `cleanCodeBlocks` function preserves empty lines in the output, unless they are specifically the "$ powershell" command line. (added 2025-04-23)
+- **DO** verify that the scraper's target selector ("main") correctly encompasses the `<h1>` tag and introductory content when debugging title and content extraction issues. (added 2025-05-29)

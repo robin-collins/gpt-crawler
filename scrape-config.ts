@@ -8,24 +8,25 @@ const { visitPage, markdown } = ConfigModule;
  * Removes footer and outline elements from the DOM
  */
 
-const removeNodesFromDOM = visitPage.createRemoveNodesFunction(["iframe"]);
+// const removeNodesFromDOM = visitPage.createRemoveNodesFunction(["iframe"]);
 
 const combinedOnVisitPage = visitPage.chainVisitFunctions(
   visitPage.cleanNextraCodeBlocks,
-  visitPage.createRemoveNodesFunction(["iframe"]),
+  visitPage.cleanCodeBlocks
 );
 
 export const defaultConfig: Config = {
-  url: "https://docs.hyperdiv.io/guide/getting-started",
-  match: ["https://docs.hyperdiv.io/guide/getting-started"],
+  url: "https://www.librechat.ai/docs/configuration/librechat_yaml/ai_endpoints",
+  match: ["https://www.librechat.ai/docs/configuration/librechat_yaml/ai_endpoints"],
   exclude: [],
   maxPagesToCrawl: 1,
-  topic: "hyperdiv",
-  selector: '//*[@id="a9dd805ed"]',
-  outputFileName: "hyperdiv.md",
+  topic: "librechat",
+  selector: "article",
+  outputFileName: "librechat-configuration.md",
   outputFileFormat: "markdown",
-  // onVisitPage: combinedOnVisitPage,
-  // onProcessMarkdown: (md) => ConfigModule.markdown.addLanguageToCodeBlocks(md, "typescript"),
+  waitForSelectorTimeout: 5000,
+  // onVisitPage: visitPage.cleanNextraCodeBlocks,
+  // onProcessMarkdown: (md) => ConfigModule.markdown.addLanguageToCodeBlocks(md, "python"),
 };
 
 /*

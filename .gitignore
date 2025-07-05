@@ -18,4 +18,7 @@ storage
 pnpm-lock.yaml
 crawled/
 example_html/
+example_html2/
 reporting/
+old_crawled/
+.specstory

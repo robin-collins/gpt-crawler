@@ -88,27 +88,50 @@ export const cleanCodeBlocks = async ({
 
       // Get all text content, removing special characters and extra whitespace
       let codeText = "";
-      const codeLines = codeElement.textContent?.split("\n") || [];
+      // Use innerText to better preserve visual line breaks, then split
+      const codeLines = codeElement.innerText?.split("\n") || [];
 
       codeLines.forEach((line) => {
         // Remove line numbers and their associated elements
-        const cleanLine = line
+        const processedLine = line
           .replace(/^\s*\d+\s?/, "") // Remove leading line numbers
           .replace(/^\s*\$\s/, "$  ") // Preserve command prompts but normalize spacing
-          .replace(/^.*codelineno.*$/, "") // Remove line number anchor elements
-          .trim();
+          .replace(/^.*codelineno.*$/, ""); // Remove line number anchor elements
 
-        if (cleanLine && !cleanLine.startsWith("$ powershell")) {
-          // Skip powershell commands
-          codeText += cleanLine + "\n";
+        // Skip only powershell command lines, include all others (even if empty)
+        if (processedLine.startsWith("$ powershell")) {
+          // Do nothing, effectively skipping this line from being added to codeText
+        } else {
+          codeText += processedLine + "\n";
         }
       });
 
       // Create new clean elements
       const newPre = document.createElement("pre");
       const newCode = document.createElement("code");
-      newCode.className = "language-bash";
-      newCode.textContent = codeText.trim();
+
+      // Attempt to preserve the language class
+      let languageClass = "";
+      if (codeElement.className) {
+        const langMatch = codeElement.className.split(' ').find(cls => cls.startsWith('language-'));
+        if (langMatch) {
+          languageClass = langMatch;
+        }
+      }
+      // If not found on <code>, check <pre>
+      if (!languageClass && codeBlock.className) {
+        const langMatch = codeBlock.className.split(' ').find(cls => cls.startsWith('language-'));
+        if (langMatch) {
+          languageClass = langMatch;
+        }
+      }
+      // Default if no specific language class is found
+      if (!languageClass) {
+        languageClass = "language-text";
+      }
+      newCode.className = languageClass;
+
+      newCode.textContent = codeText;
       newPre.appendChild(newCode);
 
       // Replace the old complex structure with our clean one
@@ -187,6 +210,49 @@ export const cleanNextraCodeBlocks = async ({
   // Log the results in the Node.js console
   console.log(
     `\x1b[96m[cleanNextraCodeBlocks][0m Found: ${results.totalFound}, Processed: ${results.processed}, Replaced: ${results.replaced} Nextra code blocks.`,
+  );
+};
+
+/**
+ * Function to clean Hyperdiv-specific code blocks (div.codehilite > pre > code)
+ * by replacing the outer div.codehilite with the inner pre element.
+ * @param params - The onVisitPage parameters
+ */
+export const cleanHyperdivCodeBlocks = async ({
+  page,
+  pushData: _pushData,
+}: OnVisitPageParams): Promise<void> => {
+  const results = await page.evaluate(() => {
+    const codeContainers = document.querySelectorAll("div.codehilite");
+    let processedCount = 0;
+    let replacedCount = 0;
+
+    codeContainers.forEach((container) => {
+      if (!(container instanceof HTMLElement)) return;
+
+      const preElement = container.querySelector("pre");
+      if (!preElement) {
+        return; // Skip containers that don't contain a pre element
+      }
+
+      processedCount++;
+
+      // Replace the container with the preElement
+      if (container.parentNode) {
+        container.parentNode.replaceChild(preElement, container);
+        replacedCount++;
+      }
+    });
+
+    return {
+      totalFound: codeContainers.length,
+      processed: processedCount,
+      replaced: replacedCount,
+    };
+  });
+
+  console.log(
+    `\x1b[96m[cleanHyperdivCodeBlocks] [0m Found: ${results.totalFound}, Processed: ${results.processed}, Replaced: ${results.replaced} div.codehilite blocks.`,
   );
 };
 
