@@ -6,6 +6,10 @@ import { Config, configSchema } from "./config.js";
 import { Page } from "playwright";
 import { isWithinTokenLimit } from "gpt-tokenizer";
 import { PathLike } from "fs";
+import { Readability } from "@mozilla/readability";
+import { JSDOM } from "jsdom";
+import TurndownService from "turndown";
+import { URL } from "url";
 
 let pageCounter = 0;
 let crawler: PlaywrightCrawler;
@@ -21,7 +25,7 @@ export function getPageHtml(page: Page, selector = "body") {
         XPathResult.ANY_TYPE,
         null,
       );
-      let result = elements.iterateNext();
+      const result = elements.iterateNext();
       return result ? result.textContent || "" : "";
     } else {
       // Handle as a CSS selector
@@ -79,14 +83,32 @@ export async function crawl(config: Config) {
             }
           }
 
-          const html = await getPageHtml(page, config.selector);
+          // Create a wrapper for pushData that matches the expected type
+          const pushDataWrapper = async (data: any) => {
+            await pushData(data);
+          };
 
-          // Save results as JSON to ./storage/datasets/default
-          await pushData({ title, url: request.loadedUrl, html });
-
+          // Execute onVisitPage BEFORE content capture
           if (config.onVisitPage) {
-            await config.onVisitPage({ page, pushData });
+            await config.onVisitPage({ page, pushData: pushDataWrapper });
           }
+
+          // Now capture the content AFTER any DOM modifications
+          const html = await page.content();
+          const dom = new JSDOM(html, { url: request.loadedUrl });
+          const reader = new Readability(dom.window.document);
+          const article = reader.parse();
+
+          // Save results
+          await pushDataWrapper({
+            title: article?.title || title,
+            url: request.loadedUrl,
+            content: article?.content || "",
+            textContent: article?.textContent || "",
+            excerpt: article?.excerpt || "",
+            byline: article?.byline || "",
+            siteName: article?.siteName || "",
+          });
 
           // Extract links from the current page
           // and add them to the crawling queue.
@@ -97,6 +119,21 @@ export async function crawl(config: Config) {
               typeof config.exclude === "string"
                 ? [config.exclude]
                 : (config.exclude ?? []),
+            transformRequestFunction: (req) => {
+              // Additional check for excluded query parameters
+              if (config.exclude && Array.isArray(config.exclude)) {
+                const url = new URL(req.url);
+                for (const pattern of config.exclude) {
+                  if (typeof pattern === "string" && pattern.includes("&do=")) {
+                    const param = pattern.replace(/\*\*/g, "").trim();
+                    if (url.search.includes(param)) {
+                      return false; // Exclude this URL
+                    }
+                  }
+                }
+              }
+              return req; // Include this URL
+            },
           });
         },
         // Comment this option to scrape the full website.
@@ -158,6 +195,172 @@ export async function crawl(config: Config) {
   }
 }
 
+interface ToCItem {
+  level: number;
+  text: string;
+  slug: string;
+}
+
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^\w\s-]/g, "")
+    .replace(/[\s_-]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function convertToMarkdown(
+  data: Record<string, any>,
+  baseUrl: string,
+  allUrls: string[],
+  includeExtras: boolean,
+): { markdown: string; tocItems: ToCItem[] } {
+  const turndownService = new TurndownService({
+    headingStyle: "atx",
+    codeBlockStyle: "fenced",
+    emDelimiter: "*",
+  });
+
+  // Custom rule to ensure list items start on a new line
+  turndownService.addRule("listItems", {
+    filter: "li",
+    replacement: function (content) {
+      content = content
+        .trim()
+        .replace(/^\n+/, "") // remove leading newlines
+        .replace(/\n+$/, "\n") // replace trailing newlines with just a single one
+        .replace(/\n/gm, "\n    "); // indent
+      return `\n* ${content}\n`;
+    },
+  });
+
+  // Custom rule to convert links to local if they exist in allUrls
+  turndownService.addRule("links", {
+    filter: "a",
+    replacement: function (content, node) {
+      const element = node as HTMLElement;
+      const href = element.getAttribute("href");
+
+      // Clean the content for use as link text: remove leading markdown and collapse whitespace
+      const linkText = content
+        .replace(/^#+\s*/, "")
+        .replace(/\s+/g, " ")
+        .trim();
+
+      if (href && allUrls.includes(href)) {
+        // Use the original, uncleaned content for slugification
+        const localSlug = slugify(content);
+        return includeExtras
+          ? `[${linkText}](#${localSlug})`
+          : `[${linkText}](${href})`;
+      }
+      return `[${linkText}](${href})`;
+    },
+  });
+
+  // Add custom rule to convert HTML tables to Markdown tables
+  turndownService.addRule("tables", {
+    filter: "table",
+    replacement: function (_content, node) {
+      const headers: string[] = [];
+      let markdown = "";
+
+      // Extract table headers
+      const headerRow = node.querySelector("tr");
+      if (headerRow) {
+        headerRow.querySelectorAll("th").forEach((th) => {
+          headers.push(
+            turndownService.turndown(th.innerHTML.trim()).replace(/\n+/g, " "),
+          );
+        });
+        markdown += `| ${headers.join(" | ")} |\n`;
+        markdown += `| ${headers.map(() => "---").join(" | ")} |\n`;
+      }
+
+      // Extract table rows
+      node.querySelectorAll("tr").forEach((tr) => {
+        const cells: string[] = [];
+        tr.querySelectorAll("td").forEach((td) => {
+          cells.push(
+            turndownService.turndown(td.innerHTML.trim()).replace(/\n+/g, " "),
+          );
+        });
+        if (cells.length > 0) {
+          markdown += `| ${cells.join(" | ")} |\n`;
+        }
+      });
+
+      return `\n${markdown}\n`;
+    },
+  });
+
+  const domain = new URL(baseUrl).hostname;
+  let markdown = "";
+  const tocItems: ToCItem[] = [];
+
+  if (data.isFirstPage && includeExtras) {
+    markdown += `# ${domain}\n\n`;
+  }
+
+  const slug = slugify(data.title);
+  if (includeExtras) {
+    tocItems.push({ level: 2, text: data.title, slug });
+  }
+  markdown += `## ${data.title}${includeExtras ? ` {#${slug}}` : ""}\n\n`;
+  if (includeExtras) {
+    markdown += `[Back to Top](#table-of-contents)\n\n`;
+  }
+  markdown += `URL: ${data.url}\n\n`;
+
+  if (data.byline) {
+    markdown += `Author: ${data.byline}\n\n`;
+  }
+
+  // if (data.siteName) {
+  //   markdown += `Site: ${data.siteName}\n\n`;
+  // }
+
+  // Create a JSDOM instance to parse the HTML content
+  const dom = new JSDOM(data.content);
+  let content = turndownService.turndown(dom.window.document.body);
+
+  // Collect headers and add "Back to Top" links if includeExtras is true
+  content = content.replace(/^(#{2,6}) (.+)$/gm, (_, hashes, title) => {
+    const level = hashes.length;
+    const slug = slugify(title);
+    if (includeExtras) {
+      tocItems.push({ level, text: title, slug });
+      return `${hashes} ${title} {#${slug}}\n\n[Back to Top](#table-of-contents)\n`;
+    }
+    return `${hashes} ${title}\n`;
+  });
+
+  // Increase heading levels
+  content = content.replace(/^# /gm, "### ");
+  content = content.replace(/^## /gm, "#### ");
+  content = content.replace(/^### /gm, "##### ");
+  content = content.replace(/^#### /gm, "###### ");
+
+  // Remove any headings that are now beyond level 6
+  content = content.replace(/^#{7,} (.+)$/gm, "***$1***");
+
+  markdown += `${content}\n\n`;
+  markdown += "---\n\n";
+
+  return { markdown, tocItems };
+}
+
+function generateToC(tocItems: ToCItem[]): string {
+  let toc = "## Table of Contents {#table-of-contents}\n\n";
+
+  tocItems.forEach((item) => {
+    const indent = "  ".repeat(item.level - 2);
+    toc += `${indent}- [${item.text}](#${item.slug})\n`;
+  });
+
+  return toc + "\n";
+}
+
 export async function write(config: Config) {
   let nextFileNameString: PathLike = "";
   const jsonFiles = await glob("storage/datasets/default/*.json", {
@@ -176,15 +379,70 @@ export async function write(config: Config) {
   const getStringByteSize = (str: string): number =>
     Buffer.byteLength(str, "utf-8");
 
-  const nextFileName = (): string =>
-    `${config.outputFileName.replace(/\.json$/, "")}-${fileCounter}.json`;
+  const nextFileName = (): string => {
+    const baseName = config.outputFileName.replace(/\.[^/.]+$/, ""); // Remove any existing extension
+    const extension = config.outputFileFormat === "json" ? "json" : "md";
+    if (fileCounter > 1) {
+      return `${baseName}-${fileCounter}.${extension}`;
+    }
+    return `${baseName}.${extension}`;
+  };
 
   const writeBatchToFile = async (): Promise<void> => {
     nextFileNameString = nextFileName();
-    await writeFile(
-      nextFileNameString,
-      JSON.stringify(currentResults, null, 2),
-    );
+    if (
+      config.outputFileFormat === "markdown" ||
+      config.outputFileFormat === "human_readable_markdown"
+    ) {
+      const reversedResults = currentResults.reverse();
+      let allToCItems: ToCItem[] = [];
+      let markdownContent = "";
+
+      // Collect all URLs
+      const allUrls = reversedResults.map((data) => data.url);
+
+      const includeExtras =
+        config.outputFileFormat === "human_readable_markdown";
+
+      reversedResults.forEach((data, index) => {
+        const { markdown, tocItems } = convertToMarkdown(
+          { ...data, isFirstPage: index === 0 },
+          config.url,
+          allUrls,
+          includeExtras,
+        );
+        markdownContent += markdown;
+        allToCItems = allToCItems.concat(tocItems);
+      });
+
+      if (includeExtras) {
+        const toc = generateToC(allToCItems);
+
+        // Insert ToC after the primary header
+        const primaryHeaderIndex = markdownContent.indexOf("\n\n");
+        if (primaryHeaderIndex !== -1) {
+          markdownContent =
+            markdownContent.slice(0, primaryHeaderIndex + 2) +
+            toc +
+            markdownContent.slice(primaryHeaderIndex + 2);
+        } else {
+          markdownContent = toc + markdownContent;
+        }
+      }
+
+      // Apply onProcessMarkdown if provided
+      if (config.onProcessMarkdown) {
+        markdownContent = config.onProcessMarkdown(markdownContent);
+      }
+
+      await writeFile(nextFileNameString, markdownContent);
+    } else {
+      // For JSON, we'll also reverse the order
+      await writeFile(
+        nextFileNameString,
+        JSON.stringify(currentResults.reverse(), null, 2),
+      );
+    }
     console.log(
       `Wrote ${currentResults.length} items to ${nextFileNameString}`,
     );

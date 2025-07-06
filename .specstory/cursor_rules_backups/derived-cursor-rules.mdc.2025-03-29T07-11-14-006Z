@@ -1,0 +1,74 @@
+---
+description: Cursor rules derived by SpecStory from the project AI interaction history
+globs: *
+alwaysApply: false
+---
+
+---
+description: Cursor rules derived by SpecStory from the project AI interaction history
+globs: *
+alwaysApply: true
+---
+
+## PROJECT OVERVIEW
+This project is a web crawler designed to extract information from various websites and generate markdown files.  The crawler uses TypeScript and Node.js.  Version history is tracked using git.
+
+
+## CODE STYLE
+Adhere to standard TypeScript coding conventions.  Maintain consistent indentation (2 spaces).  Use descriptive variable and function names.
+
+
+## FOLDER ORGANIZATION
+- `crawled`: Stores the crawled data, organized by topic or source website.
+- `src`: Contains the source code for the crawler.
+- `example_html`: Example HTML files for testing.
+
+
+## TECH STACK
+- TypeScript
+- Node.js
+- Git
+
+
+## PROJECT-SPECIFIC STANDARDS
+- Configuration for a specific crawl configuration is managed through the `scrape-config.ts` file.
+- Markdown output should follow a consistent structure.
+- Valid CSS selectors (tag, class, ID, attribute, combined, descendant, pseudo-classes, pseudo-elements) are supported for targeting HTML elements.  Confirmed selector combinations for article tag validation (see 2025-03-07_22-26-validating-css-selectors-for-article-tag.md for details).
+
+
+## WORKFLOW & RELEASE RULES
+- Use Git for version control.
+- Commit messages should be clear and concise.
+- Follow a standard release process (detailed in .releaserc).
+
+
+## REFERENCE EXAMPLES
+- Refer to the `example_html` folder for examples of HTML input.
+
+
+## PROJECT DOCUMENTATION & CONTEXT SYSTEM
+- Documentation is stored in the `.specstory` folder.
+- Documentation is timestamped and versioned.  New debugging rules and best practices should be added to this folder.
+- The `onVisitPage` function execution order has been corrected to run before markdown conversion (see 2025-03-07_14-08-execution-order-of-onvisitpage-function.md for details).
+- Confirmed selector combinations for article tag validation (see 2025-03-07_22-26-validating-css-selectors-for-article-tag.md for details).
+- The `Config` type in `src/config.ts` has been updated to include the `onProcessMarkdown` property to resolve a linter error.  The `core.ts` file has been updated to utilize the `onProcessMarkdown` function for markdown processing.
+
+
+## DEBUGGING
+- When debugging the `removeNodesFromDOM` function, ensure that the `createRemoveNodesFunction` in `@visitPageHelpers.ts` is correctly implemented and imported.  Verify that the import path in `scrape-config.ts` is correct (use `"./src/config"` instead of `"./src/config.js"`). Check that `config.ts` correctly exports `visitPageHelpers` without a `.js` extension.  Console logs within `page.evaluate()` will not appear in the Node.js terminal;  use `console.log` outside of `page.evaluate()` to log information to the terminal.  For debugging within `page.evaluate()`, return structured data from the function and log it after the `page.evaluate()` call.
+- To debug `createRemoveNodesFunction`, log selectors before the `page.evaluate()` call. Within `page.evaluate()`, return structured data (e.g., an object indicating whether selectors were found and their counts) instead of using `console.log`. Log this structured data after the `page.evaluate()` call. Avoid relying solely on `console.log` within `page.evaluate()` for terminal output.
+- The order of operations in `core.ts` must ensure that `removeNodesFromDOM` is executed *before* content is captured for markdown output.  Currently, content capture precedes the execution of the removal function, resulting in unwanted content in the output.  This requires a re-ordering of function calls within `core.ts`.  The `onVisitPage` function should be used to modify the DOM *before* content capture to prevent unwanted elements in the final markdown.  Incorrect placement of `console.log` statements within `page.evaluate()` will result in missing debug output in the terminal.  Return structured data from `page.evaluate()` and log it after the call for effective debugging within that function.  Do not modify imports/exports to include or remove `.js` extensions. The TypeScript compiler handles this.
+- The `onVisitPage` function, as defined in `scrape-config.ts`, is now correctly executed *before* the content is captured for markdown conversion in `src/core.ts`.  This ensures DOM modifications are applied before content capture. The `onVisitPage` function call has been moved in `src/core.ts` to precede content capture (see 2025-03-07_14-08-execution-order-of-onvisitpage-function.md for details).
+- Address linter error in `scrape-config.ts` related to `onProcessMarkdown` not being defined in the Config type.  The `Config` type in `src/config.ts` has been updated to include the `onProcessMarkdown` property to resolve this linter error.
+
+
+## FINAL DOs AND DON'Ts
+- **DO** use descriptive variable names.
+- **DO** commit frequently with clear messages.
+- **DO** test thoroughly before releasing.
+- **DON'T** hardcode values; use configuration files.
+- **DON'T** commit unnecessary files.
+- **DO** ensure that console logs for debugging purposes are placed appropriately to be visible in the terminal output.  Avoid relying solely on `console.log` within `page.evaluate()` for terminal output.
+- **DO NOT** modify imports/exports to include or remove `.js` extensions.  The TypeScript compiler handles this.
+- **DO** ensure that the `removeNodesFromDOM` function executes before content is captured for markdown output to prevent unwanted elements from appearing in the final markdown.  This necessitates a review and adjustment of the function call order in `core.ts`.  The `onVisitPage` function must be called *before* content is captured for markdown processing.
+- **DO** utilize a variety of valid CSS selectors (as confirmed in 2025-03-07_22-26-validating-css-selectors-for-article-tag.md) to efficiently target and extract the necessary HTML elements.

@@ -1,0 +1,130 @@
+---
+description: AI rules derived by SpecStory from the project AI interaction history
+globs: *
+---
+
+## PROJECT OVERVIEW
+This project is a web crawler designed to extract information from various websites and generate markdown files.  The crawler uses TypeScript and Node.js.  Version history is tracked using git.
+
+
+## CODE STYLE
+Adhere to standard TypeScript coding conventions.  Maintain consistent indentation (2 spaces).  Use descriptive variable and function names.  ESLint is now configured for linting; run `npm run lint` to check for errors and `npm run lint:fix` to automatically fix them (added 2025-03-29).  Address all linting errors reported in `LINTERRORS.md` (added 2025-03-30).  Configure the `@typescript-eslint/no-unused-vars` rule to ignore variables prefixed with an underscore `_` or disable the rule for specific lines where unused variables are necessary due to type definitions (added 2025-03-30).  When using `document.querySelector`, ensure the returned `Element` is cast to `HTMLElement` to access `innerText` property reliably (added 2025-04-03). Avoid generating markdown links with newline characters between the link text and the link reference.  The `convertToMarkdown` function in `src/core.ts` has been updated to prevent newline characters from appearing in markdown links (added 2025-04-03). The `addLanguageToCodeBlocks` function in `src/markdownHelpers.ts` has been updated to reliably add language specifiers to markdown code blocks (added 2025-04-17).
+
+
+## FOLDER ORGANIZATION
+- `crawled`: Stores the crawled data, organized by topic or source website.
+- `src`: Contains the source code for the crawler.
+- `example_html`: Example HTML files for testing.
+- `dist`: Build output directory (added 2025-03-29)
+- `LINTERRORS.md`: Report on linting errors and resolutions (added 2025-03-30)
+
+
+## TECH STACK
+- TypeScript
+- Node.js
+- Git
+- crypto (added 2025-03-29)
+- rimraf (recommended for cross-platform compatibility, added 2025-03-29)
+- ESLint (added 2025-03-29)
+- Prettier (already included, leveraged by ESLint configuration, 2025-03-29)
+
+
+## PROJECT-SPECIFIC STANDARDS
+- Configuration for a specific crawl configuration is managed through the `scrape-config.ts` file.
+- Markdown output should follow a consistent structure.  Avoid generating markdown links with newline characters between the link text and the link reference.
+- Valid CSS selectors (tag, class, ID, attribute, combined, descendant, pseudo-classes, pseudo-elements) are supported for targeting HTML elements.  Confirmed selector combinations for article tag validation (see 2025-03-07_22-26-validating-css-selectors-for-article-tag.md for details).
+- File copy and verification process updated (2025-03-29):  `src/backup-crawler-output.ts` now includes SHA-256 hash verification before deleting the source file.
+- Clean-up scripts added to `package.json` (2025-03-29): `clean:build` (deletes `dist` directory) and `clean:pkgs` (deletes `package-lock.json` and `node_modules` directory).  `rimraf` is the recommended tool for cross-platform compatibility.
+- Address all linting errors reported in `LINTERRORS.md` (added 2025-03-30).
+- Configure the `@typescript-eslint/no-unused-vars` rule to ignore variables prefixed with an underscore `_` or disable the rule for specific lines where unused variables are necessary due to type definitions (added 2025-03-30).
+- When using `document.querySelector`, ensure the returned `Element` is cast to `HTMLElement` to access `innerText` property reliably (added 2025-04-03).
+- The `convertToMarkdown` function in `src/core.ts` has been updated to prevent newline characters from appearing in markdown links (added 2025-04-03).
+- The `addLanguageToCodeBlocks` function in `src/markdownHelpers.ts` has been updated to reliably add language specifiers to markdown code blocks (added 2025-04-17).
+- Use `cleanHyperdivCodeBlocks` to transform `div.codehilite > pre > code` structures into just `<pre><code>`. (added 2025-04-23)
+- Chain `cleanHyperdivCodeBlocks` and `cleanCodeBlocks` in `scrape-config.ts` to apply both specialized and general cleanup steps. (added 2025-04-23)
+- Use `cleanCodeBlocks` to remove prefixed line numbers and attempt to set a language class. (added 2025-04-23)
+- The `cleanCodeBlocks` function has been updated to use `innerText.split('\n')` instead of `textContent.split('\n')` for splitting code into lines to better preserve newlines. (added 2025-04-23)
+- The `cleanCodeBlocks` function has been modified to ensure that empty lines are preserved in the output, unless they are specifically the "$ powershell" command line. This fixes an issue where intentional blank lines in code were being removed. (added 2025-04-23)
+- When working with Azure OpenAI, use the `AzureOpenAI` client and configure it using the `AZURE_OPENAI_ENDPOINT` and `AZURE_OPENAI_API_KEY` environment variables. The older method of setting attributes directly on the `openai` module is deprecated. (added 2025-07-05)
+
+
+## WORKFLOW & RELEASE RULES
+- Use Git for version control.
+- Commit messages should be clear and concise.
+- Follow a standard release process (detailed in .releaserc).
+- Add clean:build and clean:pkgs scripts to package.json for cross-platform cleanup (2025-03-29).  Run `npm run clean:build` to remove the `dist` directory and `npm run clean:pkgs` to remove `node_modules` and `package-lock.json`.
+- Address all linting errors reported in `LINTERRORS.md` before committing (added 2025-03-30).
+- Configure the `@typescript-eslint/no-unused-vars` rule to ignore variables prefixed with an underscore `_` or disable the rule for specific lines where unused variables are necessary due to type definitions (added 2025-03-30).
+- When using `document.querySelector`, ensure the returned `Element` is cast to `HTMLElement` before accessing `innerText` property reliably (added 2025-04-03).
+- Avoid generating markdown links with newline characters between the link text and the link reference.  The `convertToMarkdown` function in `src/core.ts` has been updated to prevent newline characters from appearing in markdown links (added 2025-04-03).
+- The `addLanguageToCodeBlocks` function in `src/markdownHelpers.ts` has been updated to reliably add language specifiers to markdown code blocks (added 2025-04-17).
+- Chain `cleanHyperdivCodeBlocks` and `cleanCodeBlocks` in `scrape-config.ts` to apply both specialized and general cleanup steps. (added 2025-04-23)
+- When working with Azure OpenAI, ensure the `AZURE_OPENAI_ENDPOINT` and `AZURE_OPENAI_API_KEY` environment variables are set. Use the `AzureOpenAI` client for configuration, as the older method of setting attributes directly on the `openai` module is deprecated. (added 2025-07-05)
+
+
+## REFERENCE EXAMPLES
+- Refer to the `example_html` folder for examples of HTML input.
+
+
+## PROJECT DOCUMENTATION & CONTEXT SYSTEM
+- Documentation is stored in the `.specstory` folder.
+- Documentation is timestamped and versioned.  New debugging rules and best practices should be added to this folder.
+- The `onVisitPage` function execution order has been corrected to run before markdown conversion (see 2025-03-07_14-08-execution-order-of-onvisitpage-function.md for details).
+- Confirmed selector combinations for article tag validation (see 2025-03-07_22-26-validating-css-selectors-for-article-tag.md for details).
+- The `Config` type in `src/config.ts` has been updated to include the `onProcessMarkdown` property to resolve a linter error.  The `core.ts` file has been updated to utilize the `onProcessMarkdown` function for markdown processing.
+- `src/backup-crawler-output.ts` updated to include SHA-256 hash verification and source file deletion (2025-03-29).
+- Linting error report and resolution steps added to `LINTERRORS.md` (added 2025-03-30).
+- Add explicit `HTMLElement` type casting when accessing `innerText` from `document.querySelector` results (added 2025-04-03).
+- The `convertToMarkdown` function in `src/core.ts` has been updated to prevent newline characters from appearing in markdown links (added 2025-04-03).
+- The `addLanguageToCodeBlocks` function in `src/markdownHelpers.ts` has been updated to reliably add language specifiers to markdown code blocks (added 2025-04-17).
+- The `cleanNextraCodeBlocks` function in `src/visitPageHelpers.ts` now provides console output indicating the number of code blocks found, processed, and replaced (added 2025-04-18).
+- Added `cleanHyperdivCodeBlocks` function to `src/visitPageHelpers.ts`. This function cleans up `div.codehilite` structures by replacing them with their inner `pre` tag, aiming to improve Markdown conversion consistency for code blocks from Hyperdiv-like documentation sites. (added 2025-04-23)
+- Modified `cleanCodeBlocks` in `src/visitPageHelpers.ts` to attempt to preserve existing language classes from `<code>` or `<pre>` elements, defaulting to `language-text` if none is found. This replaces the previous behavior of hardcoding `language-bash`. (added 2025-04-23)
+- Modified `cleanCodeBlocks` in `src/visitPageHelpers.ts` to preserve leading and trailing whitespace (including newlines and indentation) by removing `.trim()` calls that were affecting individual lines and the entire code block. This is critical for whitespace-sensitive languages like Python. (added 2025-04-23)
+- Modified `cleanCodeBlocks` in `src/visitPageHelpers.ts` to use `innerText.split('\n')` instead of `textContent.split('\n')` for splitting code into lines. This is an attempt to better preserve newlines in code blocks that are heavily structured with inline `<span>` elements for syntax highlighting, as `innerText` can better reflect visual line breaks. (added 2025-04-23)
+- Modified `cleanCodeBlocks` in `src/visitPageHelpers.ts` to ensure that empty lines are preserved in the output, unless they are specifically the "$ powershell" command line. This fixes an issue where intentional blank lines in code were being removed. (added 2025-04-23)
+- Investigating discrepancies between expected and actual markdown output, particularly concerning the title and introduction content. The scraper targets the "main" selector; confirm that the relevant content resides within this targeted area (added 2025-05-29).
+- Documented the refactoring process for Azure OpenAI integration, including the necessity of using the `AzureOpenAI` client and environment variables (`AZURE_OPENAI_ENDPOINT`, `AZURE_OPENAI_API_KEY`) for configuration due to the deprecation of the older `openai` module attribute setting method. (added 2025-07-05)
+
+
+## DEBUGGING
+- When debugging the `removeNodesFromDOM` function, ensure that the `createRemoveNodesFunction` in `@visitPageHelpers.ts` is correctly implemented and imported.  Verify that the import path in `scrape-config.ts` is correct (use `"./src/config"` instead of `"./src/config.js"`). Check that `config.ts` correctly exports `visitPageHelpers` without a `.js` extension.  Console logs within `page.evaluate()` will not appear in the Node.js terminal;  use `console.log` outside of `page.evaluate()` to log information to the terminal.  For debugging within `page.evaluate()`, return structured data from the function and log it after the `page.evaluate()` call.
+- To debug `createRemoveNodesFunction`, log selectors before the `page.evaluate()` call. Within `page.evaluate()`, return structured data (e.g., an object indicating whether selectors were found and their counts) instead of using `console.log`. Log this structured data after the `page.evaluate()` call. Avoid relying solely on `console.log` within `page.evaluate()` for terminal output.
+- The order of operations in `core.ts` must ensure that `removeNodesFromDOM` is executed *before* content is captured for markdown output.  Currently, content capture precedes the execution of the removal function, resulting in unwanted content in the output.  This requires a re-ordering of function calls within `core.ts`.  The `onVisitPage` function should be used to modify the DOM *before* content is captured to prevent unwanted elements in the final markdown.  Incorrect placement of `console.log` statements within `page.evaluate()` will result in missing debug output in the terminal.  Return structured data from `page.evaluate()` and log it after the call for effective debugging within that function.  Do not modify imports/exports to include or remove `.js` extensions. The TypeScript compiler handles this.
+- The `onVisitPage` function, as defined in `scrape-config.ts`, is now correctly executed *before* the content is captured for markdown conversion in `src/core.ts`.  This ensures DOM modifications are applied before content capture. The `onVisitPage` function call has been moved in `src/core.ts` to precede content capture (see 2025-03-07_14-08-execution-order-of-onvisitpage-function.md for details).
+- Address linter error in `scrape-config.ts` related to `onProcessMarkdown` not being defined in the Config type.  The `Config` type in `src/config.ts` has been updated to include the `onProcessMarkdown` property to resolve this linter error.
+- Refer to `LINTERRORS.md` for additional debugging guidance related to linting errors (added 2025-03-30).
+- Cast the result of `document.querySelector` to `HTMLElement` before accessing `innerText` to avoid TypeScript errors (added 2025-04-03).
+- The `cleanNextraCodeBlocks` function in `src/visitPageHelpers.ts` now provides console output indicating the number of code blocks found, processed, and replaced (added 2025-04-18).
+- If code blocks are rendered with single backticks instead of triple backticks, the root cause may be a combination of how the `Readability` library parses HTML structures and how `TurndownService` subsequently converts these potentially altered structures to Markdown. (added 2025-04-23)
+- If newlines are being lost in code blocks, ensure that the `cleanCodeBlocks` function is not removing lines that become empty after stripping prefixes. (added 2025-04-23)
+- When debugging title and content extraction issues, verify that the scraper's target selector ("main") correctly encompasses the `<h1>` tag and introductory content. (added 2025-05-29)
+- When debugging Azure OpenAI integration, ensure that the `AZURE_OPENAI_ENDPOINT` environment variable is correctly set and accessible to the script. The script should now use the `AzureOpenAI` client for configuration. (added 2025-07-05)
+
+
+## FINAL DOs AND DON'Ts
+- **DO** use descriptive variable names.
+- **DO** commit frequently with clear messages.
+- **DO** test thoroughly before releasing.
+- **DON'T** hardcode values; use configuration files.
+- **DON'T** commit unnecessary files.
+- **DO** ensure that console logs for debugging purposes are placed appropriately to be visible in the terminal output.  Avoid relying solely on `console.log` within `page.evaluate()` for terminal output.
+- **DO NOT** modify imports/exports to include or remove `.js` extensions.  The TypeScript compiler handles this.
+- **DO** ensure that the `removeNodesFromDOM` function executes before content is captured for markdown output to prevent unwanted elements from appearing in the final markdown.  This necessitates a review and adjustment of the function call order in `core.ts`.  The `onVisitPage` function must be called *before* content is captured for markdown processing.
+- **DO** utilize a variety of valid CSS selectors (as confirmed in 2025-03-07_22-26-validating-css-selectors-for-article-tag.md) to efficiently target and extract the necessary HTML elements.
+- **DO** verify file integrity using SHA-256 hashing after file copying (added 2025-03-29).
+- **DO** use `rimraf` for cross-platform directory deletion (added 2025-03-29).
+- **DO** run `npm run clean:build` to remove the `dist` directory and `npm run clean:pkgs` to remove `node_modules` and `package-lock.json` (added 2025-03-29).
+- **DO** run `npm run lint` to check for linting errors and `npm run lint:fix` to automatically fix them (added 2025-03-29).
+- **DO** address all linting errors as detailed in `LINTERRORS.md` (added 2025-03-30).
+- **DO** Configure the `@typescript-eslint/no-unused-vars` rule to ignore variables prefixed with an underscore `_` or disable variables where necessary due to type definitions (added 2025-03-30).
+- **DO** Cast the result of `document.querySelector` to `HTMLElement` before accessing `innerText` to avoid TypeScript errors (added 2025-04-03).
+- **DO NOT** introduce newline characters between the link text and the link reference in markdown links.  The `convertToMarkdown` function in `src/core.ts` has been updated to prevent newline characters from appearing in markdown links (added 2025-04-03).
+- **DO** use the `addLanguageToCodeBlocks` function to consistently add language specifiers to markdown code blocks (added 2025-04-17).  The function now handles various edge cases and uses a more robust parsing method.
+- **DO** use `cleanHyperdivCodeBlocks` to transform `div.codehilite > pre > code` structures into just `<pre><code>`. (added 2025-04-23)
+- **DO** chain `cleanHyperdivCodeBlocks` and `cleanCodeBlocks` in `scrape-config.ts` to apply both specialized and general cleanup steps. (added 2025-04-23)
+- **DO** use `cleanCodeBlocks` to remove prefixed line numbers and attempt to set a language class. (added 2025-04-23)
+- **DO** use `innerText.split('\n')` instead of `textContent.split('\n')` in `cleanCodeBlocks` for splitting code into lines to better preserve newlines. (added 2025-04-23)
+- **DO** ensure that the `cleanCodeBlocks` function preserves empty lines in the output, unless they are specifically the "$ powershell" command line. (added 2025-04-23)
+- **DO** verify that the scraper's target selector ("main") correctly encompasses the `<h1>` tag and introductory content when debugging title and content extraction issues. (added 2025-05-29)
+- **DO** use the `AzureOpenAI` client and configure it using the `AZURE_OPENAI_ENDPOINT` and `AZURE_OPENAI_API_KEY` environment variables when working with Azure OpenAI. Ensure these environment variables are properly set. (added 2025-07-05)

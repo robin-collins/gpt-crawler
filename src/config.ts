@@ -25,7 +25,7 @@ export const configSchema = z.object({
    * @example "https://www.builder.io/c/docs/**"
    * @default ""
    */
-  exclude: z.string().or(z.array(z.string())).optional(),
+  exclude: z.union([z.string(), z.array(z.string())]).optional(),
   /**
    * Selector to grab the inner text from
    * @example ".docs-builder-container"
@@ -42,6 +42,13 @@ export const configSchema = z.object({
    * @default "output.json"
    */
   outputFileName: z.string(),
+  /**
+   * Output file format (json, markdown, or human_readable_markdown)
+   * @default "json"
+   */
+  outputFileFormat: z
+    .enum(["json", "markdown", "human_readable_markdown"])
+    .default("json"),
   /** Optional cookie to be set. E.g. for Cookie Consent */
   cookie: z
     .union([
@@ -68,6 +75,12 @@ export const configSchema = z.object({
     )
     .returns(z.promise(z.void()))
     .optional(),
+  /** Optional function to process markdown content */
+  onProcessMarkdown: z
+    .function()
+    .args(z.string())
+    .returns(z.string())
+    .optional(),
   /** Optional timeout for waiting for a selector to appear */
   waitForSelectorTimeout: z.number().int().nonnegative().optional(),
   /** Optional resources to exclude
@@ -85,6 +98,13 @@ export const configSchema = z.object({
    * @example 5000
    */
   maxTokens: z.number().int().positive().optional(),
+  /** Optional topic to categorize the data
+   * @example "diagrams"
+   */
+  topic: z.string().optional(),
 });
 
 export type Config = z.infer<typeof configSchema>;
+
+export * as visitPage from "./visitPageHelpers.js";
+export * as markdown from "./markdownHelpers.js";

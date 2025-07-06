@@ -1,0 +1,72 @@
+## SpecStory
+
+## Choosing CSS Selectors for HTML Elements (1/26/2025, 8:09:47 AM)
+
+_**User**_
+
+when choosing a selector,
+.class
+#ID
+
+what about choosing a
+
+<article>
+
+---
+
+_**Assistant**_
+
+To select an HTML element like `<article>` using a CSS selector, you can simply use the element's tag name as the selector. This is known as a type selector. Here's how you can do it:
+
+```css
+article {
+  /* Your styles here */
+}
+```
+
+This selector will apply styles to all `<article>` elements in your HTML document. If you want to be more specific, you can combine it with class or ID selectors:
+
+- To select an `<article>` with a specific class:
+
+  ```css
+  article.some-class {
+    /* Styles for articles with class 'some-class' */
+  }
+  ```
+
+- To select an `<article>` with a specific ID:
+  ```css
+  article#some-id {
+    /* Styles for the article with ID 'some-id' */
+  }
+  ```
+
+These selectors allow you to target elements based on their type, class, or ID, providing flexibility in styling your HTML content.
+
+---
+
+_**User**_
+
+a "jq" command line that will just output key names in the json
+
+---
+
+_**Assistant**_
+
+To output just the key names from a JSON object using `jq`, you can use the `keys` function. Here's a command that will do that:
+
+```bash
+jq 'keys' yourfile.json
+```
+
+This command will output an array of the keys at the top level of the JSON object in `yourfile.json`. If you want to output keys from nested objects, you can use the `..` operator to recursively search through the JSON structure:
+
+```bash
+jq 'paths | select(type == "array") | join(".")' yourfile.json
+```
+
+This command will output all the paths to keys in the JSON, which can be useful for deeply nested structures.
+
+---
+
+---
