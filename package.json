@@ -1,7 +1,7 @@
 {
   "name": "@builder.io/gpt-crawler",
   "license": "ISC",
-  "version": "1.4.0",
+  "version": "1.5.1",
   "type": "module",
   "bin": {
     "gpt-crawler": "./dist/src/cli.js"

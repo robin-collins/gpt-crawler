@@ -9,16 +9,16 @@ storage
 .DS_Store
 
 !package.json
-!package-lock.json
 !tsconfig.json
 
 # any output from the crawler
 *.json
 .env
 pnpm-lock.yaml
-crawled/
-example_html/
-example_html2/
-reporting/
-old_crawled/
+
 .specstory
+crawled
+example_html
+example_html2
+old_crawled
+reporting
