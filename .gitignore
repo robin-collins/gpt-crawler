@@ -16,3 +16,10 @@ storage
 *.json
 .env
 pnpm-lock.yaml
+
+.specstory
+crawled
+example_html
+example_html2
+old_crawled
+reporting
