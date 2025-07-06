@@ -62,6 +62,7 @@ gpt-crawler/
 ## External Configuration Files
 
 ### Global Custom Modes Configuration
+
 ```
 c:\Users\Robin\AppData\Roaming\Cursor\User\globalStorage\rooveterinaryinc.roo-cline\settings\custom_modes.yaml
 ```
@@ -71,6 +72,7 @@ This file contains custom mode configurations including the newly added "ğŸŒğŸ’
 ## Key File Categories
 
 ### Configuration Files
+
 - `package.json` - Node.js project dependencies and scripts
 - `tsconfig.json` - TypeScript compilation settings
 - `eslint.config.js` - Code quality and style rules
@@ -78,24 +80,28 @@ This file contains custom mode configurations including the newly added "ğŸŒğŸ’
 - `scrape-config.ts` - Main crawling configuration
 
 ### Source Code
+
 - `src/` - All TypeScript source files
 - `src/main.ts` - Application entry point
 - `src/core.ts` - Core crawling logic
 - `src/server.ts` - Web server functionality
 
 ### Documentation
+
 - `README.md` - Primary project documentation
 - `ARCHITECTURE.md` - Technical architecture details
 - `CHANGELOG.md` - Version history and changes
 - `FILETREE.md` - This file structure documentation
 
 ### Output and Data
+
 - `crawled/` - Crawled content storage
 - `save_output/` - Processed output files
 - `storage/` - Persistent data storage
 - `reporting/` - Analytics and reporting data
 
 ### Testing and Examples
+
 - `example.scrape-config.ts` - Configuration templates
 - `example_html/` - Test HTML content
 - `src/test-*.ts` - Test utility files
@@ -108,5 +114,5 @@ This file contains custom mode configurations including the newly added "ğŸŒğŸ’
 
 ---
 
-*Last Updated: 2025-01-07*
-*Version: 1.5.6*
+_Last Updated: 2025-01-07_
+_Version: 1.5.6_
