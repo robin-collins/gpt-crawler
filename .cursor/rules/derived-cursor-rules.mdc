@@ -45,6 +45,7 @@ Adhere to standard TypeScript coding conventions.  Maintain consistent indentati
 - Use `cleanCodeBlocks` to remove prefixed line numbers and attempt to set a language class. (added 2025-04-23)
 - The `cleanCodeBlocks` function has been updated to use `innerText.split('\n')` instead of `textContent.split('\n')` for splitting code into lines to better preserve newlines. (added 2025-04-23)
 - The `cleanCodeBlocks` function has been modified to ensure that empty lines are preserved in the output, unless they are specifically the "$ powershell" command line. This fixes an issue where intentional blank lines in code were being removed. (added 2025-04-23)
+- When working with Azure OpenAI, use the `AzureOpenAI` client and configure it using the `AZURE_OPENAI_ENDPOINT` and `AZURE_OPENAI_API_KEY` environment variables. The older method of setting attributes directly on the `openai` module is deprecated. (added 2025-07-05)
 
 
 ## WORKFLOW & RELEASE RULES
@@ -54,10 +55,11 @@ Adhere to standard TypeScript coding conventions.  Maintain consistent indentati
 - Add clean:build and clean:pkgs scripts to package.json for cross-platform cleanup (2025-03-29).  Run `npm run clean:build` to remove the `dist` directory and `npm run clean:pkgs` to remove `node_modules` and `package-lock.json`.
 - Address all linting errors reported in `LINTERRORS.md` before committing (added 2025-03-30).
 - Configure the `@typescript-eslint/no-unused-vars` rule to ignore variables prefixed with an underscore `_` or disable the rule for specific lines where unused variables are necessary due to type definitions (added 2025-03-30).
-- When using `document.querySelector`, ensure the returned `Element` is cast to `HTMLElement` to access `innerText` property reliably (added 2025-04-03).
+- When using `document.querySelector`, ensure the returned `Element` is cast to `HTMLElement` before accessing `innerText` property reliably (added 2025-04-03).
 - Avoid generating markdown links with newline characters between the link text and the link reference.  The `convertToMarkdown` function in `src/core.ts` has been updated to prevent newline characters from appearing in markdown links (added 2025-04-03).
 - The `addLanguageToCodeBlocks` function in `src/markdownHelpers.ts` has been updated to reliably add language specifiers to markdown code blocks (added 2025-04-17).
 - Chain `cleanHyperdivCodeBlocks` and `cleanCodeBlocks` in `scrape-config.ts` to apply both specialized and general cleanup steps. (added 2025-04-23)
+- When working with Azure OpenAI, ensure the `AZURE_OPENAI_ENDPOINT` and `AZURE_OPENAI_API_KEY` environment variables are set. Use the `AzureOpenAI` client for configuration, as the older method of setting attributes directly on the `openai` module is deprecated. (added 2025-07-05)
 
 
 ## REFERENCE EXAMPLES
@@ -82,6 +84,7 @@ Adhere to standard TypeScript coding conventions.  Maintain consistent indentati
 - Modified `cleanCodeBlocks` in `src/visitPageHelpers.ts` to use `innerText.split('\n')` instead of `textContent.split('\n')` for splitting code into lines. This is an attempt to better preserve newlines in code blocks that are heavily structured with inline `<span>` elements for syntax highlighting, as `innerText` can better reflect visual line breaks. (added 2025-04-23)
 - Modified `cleanCodeBlocks` in `src/visitPageHelpers.ts` to ensure that empty lines are preserved in the output, unless they are specifically the "$ powershell" command line. This fixes an issue where intentional blank lines in code were being removed. (added 2025-04-23)
 - Investigating discrepancies between expected and actual markdown output, particularly concerning the title and introduction content. The scraper targets the "main" selector; confirm that the relevant content resides within this targeted area (added 2025-05-29).
+- Documented the refactoring process for Azure OpenAI integration, including the necessity of using the `AzureOpenAI` client and environment variables (`AZURE_OPENAI_ENDPOINT`, `AZURE_OPENAI_API_KEY`) for configuration due to the deprecation of the older `openai` module attribute setting method. (added 2025-07-05)
 
 
 ## DEBUGGING
@@ -96,6 +99,7 @@ Adhere to standard TypeScript coding conventions.  Maintain consistent indentati
 - If code blocks are rendered with single backticks instead of triple backticks, the root cause may be a combination of how the `Readability` library parses HTML structures and how `TurndownService` subsequently converts these potentially altered structures to Markdown. (added 2025-04-23)
 - If newlines are being lost in code blocks, ensure that the `cleanCodeBlocks` function is not removing lines that become empty after stripping prefixes. (added 2025-04-23)
 - When debugging title and content extraction issues, verify that the scraper's target selector ("main") correctly encompasses the `<h1>` tag and introductory content. (added 2025-05-29)
+- When debugging Azure OpenAI integration, ensure that the `AZURE_OPENAI_ENDPOINT` environment variable is correctly set and accessible to the script. The script should now use the `AzureOpenAI` client for configuration. (added 2025-07-05)
 
 
 ## FINAL DOs AND DON'Ts
@@ -123,3 +127,4 @@ Adhere to standard TypeScript coding conventions.  Maintain consistent indentati
 - **DO** use `innerText.split('\n')` instead of `textContent.split('\n')` in `cleanCodeBlocks` for splitting code into lines to better preserve newlines. (added 2025-04-23)
 - **DO** ensure that the `cleanCodeBlocks` function preserves empty lines in the output, unless they are specifically the "$ powershell" command line. (added 2025-04-23)
 - **DO** verify that the scraper's target selector ("main") correctly encompasses the `<h1>` tag and introductory content when debugging title and content extraction issues. (added 2025-05-29)
+- **DO** use the `AzureOpenAI` client and configure it using the `AZURE_OPENAI_ENDPOINT` and `AZURE_OPENAI_API_KEY` environment variables when working with Azure OpenAI. Ensure these environment variables are properly set. (added 2025-07-05)

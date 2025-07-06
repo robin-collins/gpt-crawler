@@ -12,12 +12,14 @@ const { visitPage, markdown } = ConfigModule;
 
 const combinedOnVisitPage = visitPage.chainVisitFunctions(
   visitPage.cleanNextraCodeBlocks,
-  visitPage.cleanCodeBlocks
+  visitPage.cleanCodeBlocks,
 );
 
 export const defaultConfig: Config = {
   url: "https://www.librechat.ai/docs/configuration/librechat_yaml/ai_endpoints",
-  match: ["https://www.librechat.ai/docs/configuration/librechat_yaml/ai_endpoints"],
+  match: [
+    "https://www.librechat.ai/docs/configuration/librechat_yaml/ai_endpoints",
+  ],
   exclude: [],
   maxPagesToCrawl: 1,
   topic: "librechat",

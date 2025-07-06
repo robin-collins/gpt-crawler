@@ -113,14 +113,18 @@ export const cleanCodeBlocks = async ({
       // Attempt to preserve the language class
       let languageClass = "";
       if (codeElement.className) {
-        const langMatch = codeElement.className.split(' ').find(cls => cls.startsWith('language-'));
+        const langMatch = codeElement.className
+          .split(" ")
+          .find((cls) => cls.startsWith("language-"));
         if (langMatch) {
           languageClass = langMatch;
         }
       }
       // If not found on <code>, check <pre>
       if (!languageClass && codeBlock.className) {
-        const langMatch = codeBlock.className.split(' ').find(cls => cls.startsWith('language-'));
+        const langMatch = codeBlock.className
+          .split(" ")
+          .find((cls) => cls.startsWith("language-"));
         if (langMatch) {
           languageClass = langMatch;
         }
