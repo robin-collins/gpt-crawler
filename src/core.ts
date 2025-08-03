@@ -2,7 +2,9 @@
 import { Configuration, PlaywrightCrawler, downloadListOfUrls } from "crawlee";
 import { readFile, writeFile } from "fs/promises";
 import { glob } from "glob";
+import path from "path";
 import { Config, configSchema } from "./config.js";
+import { minimatch } from "minimatch";
 import { Page } from "playwright";
 import { isWithinTokenLimit } from "gpt-tokenizer";
 import { PathLike } from "fs";
@@ -56,6 +58,33 @@ export async function crawl(config: Config) {
   configSchema.parse(config);
 
   if (process.env.NO_CRAWL !== "true") {
+    // Robustly ensure all required storage directories exist
+    const fs = await import("fs/promises");
+    const path = await import("path");
+    const requiredDirs = [
+      path.join("storage"),
+      path.join("storage", "request_queues"),
+      path.join("storage", "request_queues", "default"),
+      path.join("storage", "datasets"),
+      path.join("storage", "datasets", "default"),
+    ];
+    for (const dir of requiredDirs) {
+      try {
+        await fs.mkdir(dir, { recursive: true });
+// console.log(`[DEBUG] Ensured directory exists: ${dir}`);
+      } catch (e) {
+        console.error(`[DEBUG] Failed to ensure directory: ${dir}`, e);
+      }
+    }
+    // Test: Try to create a dummy file to confirm write access in request_queues/default
+    const dummyFilePath = path.join("storage", "request_queues", "default", "dummy.txt");
+    try {
+      await fs.writeFile(dummyFilePath, "test");
+// console.log(`[DEBUG] Successfully wrote dummy file: ${dummyFilePath}`);
+      await fs.unlink(dummyFilePath);
+    } catch (e) {
+      console.error(`[DEBUG] Failed to write dummy file: ${dummyFilePath}`, e);
+    }
     // PlaywrightCrawler crawls the web using a headless
     // browser controlled by the Playwright library.
     crawler = new PlaywrightCrawler(
@@ -93,21 +122,29 @@ export async function crawl(config: Config) {
             await config.onVisitPage({ page, pushData: pushDataWrapper });
           }
 
-          // Now capture the content AFTER any DOM modifications
-          const html = await page.content();
-          const dom = new JSDOM(html, { url: request.loadedUrl });
-          const reader = new Readability(dom.window.document);
-          const article = reader.parse();
-
-          // Save results
+          // Now capture the content AFTER any DOM modifications using the configured selector
+          const html = await page.evaluate(
+            (sel: string) => {
+              const el = document.querySelector(sel);
+              return el ? el.outerHTML : document.body.outerHTML;
+            },
+            config.selector ?? "body",
+          );
+          // Use raw HTML of the selected element for full fidelity
+          const dom = new JSDOM(html);
+          const contentText = dom.window.document.body.innerText;
+          const doc = dom.window.document;
+          const articleTitle = doc.querySelector("h1")?.textContent?.trim() || title;
+        
+          // Save results using the article <h1> for title and raw HTML for content
           await pushDataWrapper({
-            title: article?.title || title,
+            title: articleTitle,
             url: request.loadedUrl,
-            content: article?.content || "",
-            textContent: article?.textContent || "",
-            excerpt: article?.excerpt || "",
-            byline: article?.byline || "",
-            siteName: article?.siteName || "",
+            content: html,
+            textContent: contentText,
+            excerpt: "",
+            byline: "",
+            siteName: "",
           });
 
           // Extract links from the current page
@@ -178,20 +215,42 @@ export async function crawl(config: Config) {
       }),
     );
 
-    const isUrlASitemap = /sitemap.*\.xml$/.test(config.url);
-
+    const isUrlASitemap = /\.xml$/i.test(config.url);
     if (isUrlASitemap) {
-      const listOfUrls = await downloadListOfUrls({ url: config.url });
+// console.log(`[DEBUG] Detected sitemap XML URL: ${config.url}`);
 
-      // Add the initial URL to the crawling queue.
-      await crawler.addRequests(listOfUrls);
+      // Extract URLs from sitemap (remote or local)
+      let listOfUrls: string[];
+      if (/^https?:\/\//i.test(config.url)) {
+        listOfUrls = await downloadListOfUrls({ url: config.url });
+      } else {
+        const xmlContent = await fs.readFile(config.url, "utf-8");
+        const dom = new JSDOM(xmlContent, { contentType: "text/xml" });
+        listOfUrls = Array.from(dom.window.document.getElementsByTagName("loc"))
+          .map((el) => el.textContent || "")
+          .filter(Boolean);
+      }
 
-      // Run the crawler
-      await crawler.run();
-    } else {
-      // Add first URL to the queue and start the crawl.
-      await crawler.run([config.url]);
+      const includePatterns = typeof config.match === "string" ? [config.match] : config.match;
+      const excludePatterns = config.exclude
+        ? typeof config.exclude === "string"
+          ? [config.exclude]
+          : config.exclude
+        : [];
+
+      const filteredUrls = listOfUrls.filter((u) =>
+        includePatterns.some((pattern) => minimatch(u, pattern)) &&
+        !excludePatterns.some((pattern) => minimatch(u, pattern))
+      );
+
+// console.log(`[DEBUG] Sitemap URLs extracted: ${listOfUrls.length}, filtered: ${filteredUrls.length}`);
+      await crawler.run(filteredUrls);
+// console.log(`Sitemap: initial URLs=${filteredUrls.length}, total pages crawled=${pageCounter}`);
+      return;
     }
+
+    // Non-sitemap: run crawler on the single URL
+    await crawler.run([config.url]);
   }
 }
 
@@ -335,14 +394,9 @@ function convertToMarkdown(
     return `${hashes} ${title}\n`;
   });
 
-  // Increase heading levels
-  content = content.replace(/^# /gm, "### ");
-  content = content.replace(/^## /gm, "#### ");
-  content = content.replace(/^### /gm, "##### ");
-  content = content.replace(/^#### /gm, "###### ");
+  // [Removed automatic heading level shift to preserve original heading levels]
 
-  // Remove any headings that are now beyond level 6
-  content = content.replace(/^#{7,} (.+)$/gm, "***$1***");
+  // [Removed removal of headings beyond level 6 to retain all original headings]
 
   markdown += `${content}\n\n`;
   markdown += "---\n\n";
@@ -361,13 +415,39 @@ function generateToC(tocItems: ToCItem[]): string {
   return toc + "\n";
 }
 
+/**
+ * Combines all stored JSON dataset files into the final output.
+ * Files are discovered recursively under storage/datasets/default,
+ * then sorted by folder and filename in alphanumeric order.
+ */
 export async function write(config: Config) {
   let nextFileNameString: PathLike = "";
-  const jsonFiles = await glob("storage/datasets/default/*.json", {
+  // Discover all JSON files recursively and sort them by folder/subfolder alphanumerically
+  const jsonFilesRaw = await glob("storage/datasets/default/**/*.json", {
     absolute: true,
   });
+  const jsonFiles = jsonFilesRaw
+    .map((filePath) => ({
+      abs: filePath,
+      relSegments: path
+        .relative("storage/datasets/default", filePath)
+        .split(path.sep),
+    }))
+    .sort((a, b) => {
+      const segA = a.relSegments;
+      const segB = b.relSegments;
+      const len = Math.max(segA.length, segB.length);
+      for (let i = 0; i < len; i++) {
+        const partA = segA[i] || "";
+        const partB = segB[i] || "";
+        if (partA < partB) return -1;
+        if (partA > partB) return 1;
+      }
+      return 0;
+    })
+    .map((item) => item.abs);
 
-  console.log(`Found ${jsonFiles.length} files to combine...`);
+ console.log(`Found ${jsonFiles.length} files to combine...`);
 
   let currentResults: Record<string, any>[] = [];
   let currentSize: number = 0;
@@ -443,9 +523,7 @@ export async function write(config: Config) {
         JSON.stringify(currentResults.reverse(), null, 2),
       );
     }
-    console.log(
-      `Wrote ${currentResults.length} items to ${nextFileNameString}`,
-    );
+    // console.log(`Wrote ${currentResults.length} items to ${nextFileNameString}`,);
     currentResults = [];
     currentSize = 0;
     fileCounter++;

@@ -23,7 +23,7 @@ export const defaultConfig: Config = {
   exclude: [],
   maxPagesToCrawl: 3,
   topic: "obsidian-dev",
-  selector: ".markdown-preview-sizer.markdown-preview-section",
+  selector: "article",
   outputFileName: "obsidian-ref-css-vars.md",
   outputFileFormat: "markdown",
   onVisitPage: removeNodesFromDOM,

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://docs.obsidian.md/Reference/Manifest</loc>
+  </url>
+  <url>
+    <loc>https://docs.obsidian.md/Reference/CSS+variables/CSS+variables</loc>
+  </url>
+  <url>
+    <loc>https://docs.obsidian.md/Reference/CSS+variables/Window/Workspace</loc>
+  </url>
+  <url>
+    <loc>https://docs.obsidian.md/Reference/CSS+variables/Window/Window+frame</loc>
+  </url>
+  <url>
+    <loc>https://docs.obsidian.md/Reference/CSS+variables/Window/Status+bar</loc>
+  </url>
+  <url>
+    <loc>https://docs.obsidian.md/Reference/CSS+variables/Window/Sidebar</loc>
+  </url>
+  <div xmlns="" id="divScriptsUsed" style="display: none"/>
+  <script xmlns="" id="globalVarsDetection" src="moz-extension://1f27086f-4726-4671-b044-25ce393ca941/js/wrs_env.js"/>
+</urlset>

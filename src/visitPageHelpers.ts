@@ -18,13 +18,13 @@ export const createRemoveNodesFunction = (selectorsToRemove: string[]) => {
     page,
     pushData: _pushData,
   }: OnVisitPageParams): Promise<void> => {
-    console.log(
-      "\x1b[91mvisitPageHelpers.ts:\x1b[0m  createRemoveNodesFunction executing",
-    );
-    console.log(
-      "\x1b[91mvisitPageHelpers.ts:\x1b[0m  selectors to remove:",
-      selectorsToRemove,
-    );
+    // console.log(
+    //   "\x1b[91mvisitPageHelpers.ts:\x1b[0m  createRemoveNodesFunction executing",
+    // );
+    // console.log(
+    //   "\x1b[91mvisitPageHelpers.ts:\x1b[0m  selectors to remove:",
+    //   selectorsToRemove,
+    // );
 
     const results = await page.evaluate((selectors: string[]) => {
       if (!selectors || !Array.isArray(selectors)) {
@@ -60,10 +60,10 @@ export const createRemoveNodesFunction = (selectorsToRemove: string[]) => {
       return { selectorResults };
     }, selectorsToRemove);
 
-    console.log(
-      "\x1b[91mvisitPageHelpers.ts:\x1b[0m  Results from browser:",
-      JSON.stringify(results, null, 2),
-    );
+    // console.log(
+    //   "\x1b[91mvisitPageHelpers.ts:\x1b[0m  Results from browser:",
+    //   JSON.stringify(results, null, 2),
+    // );
   };
 };
 
@@ -212,9 +212,9 @@ export const cleanNextraCodeBlocks = async ({
   });
 
   // Log the results in the Node.js console
-  console.log(
-    `\x1b[96m[cleanNextraCodeBlocks][0m Found: ${results.totalFound}, Processed: ${results.processed}, Replaced: ${results.replaced} Nextra code blocks.`,
-  );
+  // console.log(
+  //   `\x1b[96m[cleanNextraCodeBlocks][0m Found: ${results.totalFound}, Processed: ${results.processed}, Replaced: ${results.replaced} Nextra code blocks.`,
+  // );
 };
 
 /**
@@ -255,9 +255,9 @@ export const cleanHyperdivCodeBlocks = async ({
     };
   });
 
-  console.log(
-    `\x1b[96m[cleanHyperdivCodeBlocks] [0m Found: ${results.totalFound}, Processed: ${results.processed}, Replaced: ${results.replaced} div.codehilite blocks.`,
-  );
+  // console.log(
+  //   `\x1b[96m[cleanHyperdivCodeBlocks] [0m Found: ${results.totalFound}, Processed: ${results.processed}, Replaced: ${results.replaced} div.codehilite blocks.`,
+  // );
 };
 
 /**
@@ -267,8 +267,8 @@ export const confirmOnVisitPage = async ({
   page,
   pushData: _pushData,
 }: OnVisitPageParams): Promise<void> => {
-  console.log("\x1b[91mvisitPageHelpers.ts:\x1b[0m  onVisitPage is working");
-  console.log("\x1b[91mvisitPageHelpers.ts:\x1b[0m  page.url(): ", page.url());
+  // console.log("\x1b[91mvisitPageHelpers.ts:\x1b[0m  onVisitPage is working");
+  console.log("visitPageHelpers.ts  page.url(): ", page.url());
 };
 
 /**

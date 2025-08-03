@@ -49,7 +49,7 @@ app.post("/crawl", async (req, res) => {
 });
 
 app.listen(port, hostname, () => {
-  console.log(`API server listening at http://${hostname}:${port}`);
+// console.log(`API server listening at http://${hostname}:${port}`);
 });
 
 export default app;

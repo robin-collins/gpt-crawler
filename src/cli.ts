@@ -95,7 +95,7 @@ async function handler(options: Config) {
     await crawl(config);
     await write(config);
   } catch (error) {
-    console.log(error);
+// console.log(error);
   }
 }
 

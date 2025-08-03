@@ -8,7 +8,7 @@ const { visitPage, markdown } = ConfigModule;
  * Removes footer and outline elements from the DOM
  */
 
-// const removeNodesFromDOM = visitPage.createRemoveNodesFunction(["iframe"]);
+const removeNodesFromDOM = visitPage.createRemoveNodesFunction([".doc-picker"]);
 
 const combinedOnVisitPage = visitPage.chainVisitFunctions(
   visitPage.cleanNextraCodeBlocks,
@@ -16,18 +16,27 @@ const combinedOnVisitPage = visitPage.chainVisitFunctions(
 );
 
 export const defaultConfig: Config = {
-  url: "https://www.librechat.ai/docs/configuration/librechat_yaml/ai_endpoints",
+  url: "https://hurl.dev/docs/",
   match: [
-    "https://www.librechat.ai/docs/configuration/librechat_yaml/ai_endpoints",
+    "https://hurl.dev/docs/grammar.html",
+    "https://hurl.dev/docs/templates.html",
+    "https://hurl.dev/docs/filters.html",
+    "https://hurl.dev/docs/asserting-response.html",
+    "https://hurl.dev/docs/capturing-response.html",
+    "https://hurl.dev/docs/response.html",
+    "https://hurl.dev/docs/request.html",
+    "https://hurl.dev/docs/entry.html",
+    "https://hurl.dev/docs/hurl-file.html",
+    "https://hurl.dev/docs/tutorial/**/**",
   ],
   exclude: [],
-  maxPagesToCrawl: 1,
-  topic: "librechat",
-  selector: "article",
-  outputFileName: "librechat-configuration.md",
+  maxPagesToCrawl: 1000,
+  topic: "hurl",
+  selector: ".doc-content-col",
+  outputFileName: "hurl-http-testing.md",
   outputFileFormat: "markdown",
   waitForSelectorTimeout: 5000,
-  // onVisitPage: visitPage.cleanNextraCodeBlocks,
+  onVisitPage: removeNodesFromDOM,
   // onProcessMarkdown: (md) => ConfigModule.markdown.addLanguageToCodeBlocks(md, "python"),
 };
 
