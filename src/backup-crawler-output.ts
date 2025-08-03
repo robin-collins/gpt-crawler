@@ -70,11 +70,11 @@ async function backupCrawlerOutput() {
       // await fs.unlink(uniqueOutputPath);
       process.exit(1);
     }
-// console.log(`Output file hash verified: ${sourceOutputHash}`);
+    // console.log(`Output file hash verified: ${sourceOutputHash}`);
 
     // Delete the original output file after successful verification
     await fs.unlink(outputFile);
-// console.log(`Original output file deleted: ${outputFile}`);
+    // console.log(`Original output file deleted: ${outputFile}`);
 
     // --- Config File Handling ---
     // Generate config filename based on domain, outputFileName, and outputFileFormat
@@ -106,12 +106,12 @@ async function backupCrawlerOutput() {
       // await fs.unlink(uniqueConfigPath);
       process.exit(1);
     }
-// console.log(`Config file hash verified: ${sourceConfigHash}`);
+    // console.log(`Config file hash verified: ${sourceConfigHash}`);
 
     // console.log(`Backup completed successfully:`);
     // console.log(`Directory: ${defaultConfig.topic ? "Topic: " + defaultConfig.topic : "Domain: " + domainName}`, );
-// console.log(`Backed up output file: ${uniqueOutputPath}`);
-// console.log(`Backed up config file: ${uniqueConfigPath}`);
+    // console.log(`Backed up output file: ${uniqueOutputPath}`);
+    // console.log(`Backed up config file: ${uniqueConfigPath}`);
   } catch (error) {
     console.error("Error during backup:", error);
     process.exit(1);

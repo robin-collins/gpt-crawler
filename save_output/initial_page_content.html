@@ -247,7 +247,7 @@
           c = ["light", "dark"];
         function u(t) {
           var n;
-          (Array.isArray(e) ? e : [e]).forEach((e) => {
+          ((Array.isArray(e) ? e : [e]).forEach((e) => {
             let n = "class" === e,
               r = n && o ? i.map((e) => o[e] || e) : i;
             n
@@ -256,7 +256,7 @@
               : l.setAttribute(e, t);
           }),
             (n = t),
-            s && c.includes(n) && (l.style.colorScheme = n);
+            s && c.includes(n) && (l.style.colorScheme = n));
         }
         if (r) u(r);
         else

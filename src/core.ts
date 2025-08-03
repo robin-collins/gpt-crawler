@@ -71,16 +71,21 @@ export async function crawl(config: Config) {
     for (const dir of requiredDirs) {
       try {
         await fs.mkdir(dir, { recursive: true });
-// console.log(`[DEBUG] Ensured directory exists: ${dir}`);
+        // console.log(`[DEBUG] Ensured directory exists: ${dir}`);
       } catch (e) {
         console.error(`[DEBUG] Failed to ensure directory: ${dir}`, e);
       }
     }
     // Test: Try to create a dummy file to confirm write access in request_queues/default
-    const dummyFilePath = path.join("storage", "request_queues", "default", "dummy.txt");
+    const dummyFilePath = path.join(
+      "storage",
+      "request_queues",
+      "default",
+      "dummy.txt",
+    );
     try {
       await fs.writeFile(dummyFilePath, "test");
-// console.log(`[DEBUG] Successfully wrote dummy file: ${dummyFilePath}`);
+      // console.log(`[DEBUG] Successfully wrote dummy file: ${dummyFilePath}`);
       await fs.unlink(dummyFilePath);
     } catch (e) {
       console.error(`[DEBUG] Failed to write dummy file: ${dummyFilePath}`, e);
@@ -123,19 +128,17 @@ export async function crawl(config: Config) {
           }
 
           // Now capture the content AFTER any DOM modifications using the configured selector
-          const html = await page.evaluate(
-            (sel: string) => {
-              const el = document.querySelector(sel);
-              return el ? el.outerHTML : document.body.outerHTML;
-            },
-            config.selector ?? "body",
-          );
+          const html = await page.evaluate((sel: string) => {
+            const el = document.querySelector(sel);
+            return el ? el.outerHTML : document.body.outerHTML;
+          }, config.selector ?? "body");
           // Use raw HTML of the selected element for full fidelity
           const dom = new JSDOM(html);
           const contentText = dom.window.document.body.innerText;
           const doc = dom.window.document;
-          const articleTitle = doc.querySelector("h1")?.textContent?.trim() || title;
-        
+          const articleTitle =
+            doc.querySelector("h1")?.textContent?.trim() || title;
+
           // Save results using the article <h1> for title and raw HTML for content
           await pushDataWrapper({
             title: articleTitle,
@@ -217,7 +220,7 @@ export async function crawl(config: Config) {
 
     const isUrlASitemap = /\.xml$/i.test(config.url);
     if (isUrlASitemap) {
-// console.log(`[DEBUG] Detected sitemap XML URL: ${config.url}`);
+      // console.log(`[DEBUG] Detected sitemap XML URL: ${config.url}`);
 
       // Extract URLs from sitemap (remote or local)
       let listOfUrls: string[];
@@ -231,21 +234,23 @@ export async function crawl(config: Config) {
           .filter(Boolean);
       }
 
-      const includePatterns = typeof config.match === "string" ? [config.match] : config.match;
+      const includePatterns =
+        typeof config.match === "string" ? [config.match] : config.match;
       const excludePatterns = config.exclude
         ? typeof config.exclude === "string"
           ? [config.exclude]
           : config.exclude
         : [];
 
-      const filteredUrls = listOfUrls.filter((u) =>
-        includePatterns.some((pattern) => minimatch(u, pattern)) &&
-        !excludePatterns.some((pattern) => minimatch(u, pattern))
+      const filteredUrls = listOfUrls.filter(
+        (u) =>
+          includePatterns.some((pattern) => minimatch(u, pattern)) &&
+          !excludePatterns.some((pattern) => minimatch(u, pattern)),
       );
 
-// console.log(`[DEBUG] Sitemap URLs extracted: ${listOfUrls.length}, filtered: ${filteredUrls.length}`);
+      // console.log(`[DEBUG] Sitemap URLs extracted: ${listOfUrls.length}, filtered: ${filteredUrls.length}`);
       await crawler.run(filteredUrls);
-// console.log(`Sitemap: initial URLs=${filteredUrls.length}, total pages crawled=${pageCounter}`);
+      // console.log(`Sitemap: initial URLs=${filteredUrls.length}, total pages crawled=${pageCounter}`);
       return;
     }
 
@@ -447,7 +452,7 @@ export async function write(config: Config) {
     })
     .map((item) => item.abs);
 
- console.log(`Found ${jsonFiles.length} files to combine...`);
+  console.log(`Found ${jsonFiles.length} files to combine...`);
 
   let currentResults: Record<string, any>[] = [];
   let currentSize: number = 0;
